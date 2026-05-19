@@ -24,7 +24,9 @@
   });
 
   // Email signup
-  function handleSignup(e, src) {
+  const SUBSCRIBE_URL = 'https://6a0cc101003960e2d810.sfo.appwrite.run/';
+
+  async function handleSignup(e, src) {
     if (e) e.preventDefault();
     const isCta = src === 'cta';
     const input = document.getElementById(isCta ? 'cta-email' : 'nl-email');
@@ -33,6 +35,18 @@
       input.style.borderColor = '#8B2418';
       return false;
     }
+
+    try {
+      const res = await fetch(SUBSCRIBE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: val }),
+      });
+      if (!res.ok) throw new Error('subscription failed');
+    } catch (err) {
+      console.error(err);
+    }
+
     if (isCta) {
       const wrap = input.closest('.cta-strip-inner');
       wrap.innerHTML = '<div class="signup-success on" style="max-width:520px;margin:0 auto"><strong>You\'re on the list.</strong>Look for your free copy of <em>When Justice Calls</em> in your inbox &mdash; and a release-day alert when <em>Stray Evidence</em> drops.</div>';
