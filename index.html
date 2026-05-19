@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mac Worden — Mystery & Thriller Author</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Archivo+Narrow:wght@500;600;700&family=Barlow+Condensed:wght@300;400;500;600&family=Bebas+Neue&family=Big+Shoulders+Stencil+Display:wght@400;600;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Oswald:wght@300;400;500;600&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+
+</head>
+<body>
+
+<!-- snow -->
+<div class="snow" id="snow"></div>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <a href="#hero" class="nav-brand">Mac Worden</a>
+  <ul class="nav-links">
+    <li><a href="#book">The Book</a></li>
+    <li><a href="#series">Series</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#newsletter" class="btn-nav">Join the List</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero" data-screen-label="Home">
+  <div class="hero-grid">
+
+    <!-- LEFT — book cover -->
+    <div class="book-stage fade-up" id="book">
+      <span class="coming-tag">Coming Soon</span>
+      <div class="book-frame">
+        <div class="book-spine"></div>
+        <img src="assets/stray-evidence-cover.png" alt="Stray Evidence — A Jack and Coke Mystery by Mac Worden">
+      </div>
+    </div>
+
+    <!-- RIGHT — name, book meta, email -->
+    <div class="hero-right fade-up" id="newsletter">
+      <div class="hero-rule"></div>
+      <p class="hero-label">Mystery &amp; Thriller Author</p>
+      <h1 class="hero-name">MAC<br><span class="accent">WORDEN</span></h1>
+      <p class="hero-kicker">
+        Where justice still depends on <em>good people doing the right thing.</em> Three great series from a master storyteller.
+      </p>
+
+      <!-- Featured book strip -->
+      <div class="book-meta">
+        <div class="book-meta-text">
+          <span class="book-meta-eyebrow">New Release · Book 1</span>
+          <span class="book-meta-title">STRAY EVIDENCE</span>
+          <span class="book-meta-series">A Jack and Coke Mystery</span>
+        </div>
+        <a href="#book" class="book-meta-cta">Read the Story</a>
+      </div>
+
+      <!-- Email capture -->
+      <h2 class="signup-heading">Get a <em>free novel</em> when you<br>join the reader list.</h2>
+      <p class="signup-sub">Sign up and Mac will send you a free ebook copy of <em>When Justice Calls</em> &mdash; book one of A Henry Biggston Thriller &mdash; plus a release-day alert when <em>Stray Evidence</em> drops.</p>
+
+      <form class="signup-form" id="nl-form" onsubmit="handleSignup(event)">
+        <input type="email" id="nl-email" name="email" placeholder="Your email address" autocomplete="email" required>
+        <button type="submit">Send It</button>
+      </form>
+
+      <div class="signup-success" id="nl-success">
+        <strong>You're in.</strong>
+        Check your inbox &mdash; your free copy of <em>When Justice Calls</em> is on its way, and you'll hear from Mac the day <em>Stray Evidence</em> drops.
+      </div>
+
+      <div class="signup-perks">
+        <span class="perk">Free novel</span>
+        <span class="perk">Cover reveals</span>
+        <span class="perk">Release alerts</span>
+        <span class="perk">No spam, ever</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERIES -->
+<section id="series" data-screen-label="Series">
+  <div class="wrap">
+    <div class="series-header reveal">
+      <div>
+        <p class="section-label">The Series</p>
+        <h2 class="section-title">People worth trusting.<br><em>Trouble worth facing.</em></h2>
+      </div>
+      <p class="series-intro">Each series stands alone but share a single, uncompromising focus on good people, doing the right thing under extraordinary circumstances.</p>
+    </div>
+
+    <div class="series-grid">
+
+      <a href="#book" class="series-card featured reveal">
+        <div class="series-num">01</div>
+        <span class="series-tag">Now &mdash; Stray Evidence</span>
+        <div class="series-name">A Jack<br>&amp; Coke<br>Mystery</div>
+        <p class="series-desc">A big city detective who's lost his family, a clever puppy in need of a home, and a small Minnesota town where the snow hides more than it covers. A warm-hearted mystery for readers who like their detectives a little broken.</p>
+        <div class="series-meta">
+          <span>Book 1 &middot; Releasing soon</span>
+          <span class="arrow">&rarr;</span>
+        </div>
+      </a>
+
+      <a href="#newsletter" class="series-card reveal">
+        <div class="series-num">02</div>
+        <span class="series-tag">Out Now &mdash; When Justice Calls</span>
+        <div class="series-name">A Henry<br>Biggston<br>Thriller</div>
+        <p class="series-desc">High-stakes thrillers built for readers of Reacher and Bosch. Biggston works in the spaces the system won't touch &mdash; and the bodies tend to follow.</p>
+        <div class="series-meta">
+          <span>1 Book &middot; Available now</span>
+          <span class="arrow">&rarr;</span>
+        </div>
+      </a>
+
+      <a href="#newsletter" class="series-card reveal">
+        <div class="series-num">03</div>
+        <span class="series-tag">Two Books &mdash; Sage Creek &amp; Crosshairs</span>
+        <div class="series-name">A Colby<br>Watts<br>Thriller</div>
+        <p class="series-desc">A small-town deputy with a target on his back and a stretch of country that doesn't forgive. <em>Deputy in the Crosshairs</em> and <em>Manhunt at Sage Creek</em> &mdash; with more on the way.</p>
+        <div class="series-meta">
+          <span>2 Books &middot; Ongoing</span>
+          <span class="arrow">&rarr;</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" data-screen-label="About">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="about-image reveal">
+        <img src="assets/mac-worden-portrait.png" alt="Mac Worden, author">
+      </div>
+      <div class="reveal">
+        <p class="section-label">The Author</p>
+        <h2 class="section-title">About<br><em>Mac Worden</em></h2>
+        <div class="about-text">
+          <p>Mac Worden writes mysteries and thrillers about ordinary people pulled into extraordinary trouble &mdash; flawed heroes, small towns with long memories, and the kind of plots that move quiet, then all at once.</p>
+          <p><em>Stray Evidence</em> &mdash; the first in the Jack and Coke Mystery series &mdash; joins a growing shelf that already includes <em>When Justice Calls</em> (A Henry Biggston Thriller) and the Colby Watts novels <em>Deputy in the Crosshairs</em> and <em>Manhunt at Sage Creek</em>.</p>
+          <p>Three series. One author. Every story built on the spaces between what people say and what they actually did.</p>
+        </div>
+        <div class="about-stats">
+          <div>
+            <div class="stat-num">3</div>
+            <div class="stat-label">Series<br>in Motion</div>
+          </div>
+          <div>
+            <div class="stat-num">3</div>
+            <div class="stat-label">Novels<br>Published</div>
+          </div>
+          <div>
+            <div class="stat-num">01</div>
+            <div class="stat-label">New Release<br>Coming Soon</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA STRIP — second chance for email -->
+<section id="cta-strip">
+  <div class="cta-strip-inner reveal">
+    <h3>Don't Miss <em>Launch Day</em>.</h3>
+    <p>Stray Evidence drops soon. Subscribers get a free copy of <em>When Justice Calls</em>, plus a release-day alert and signed-edition giveaways.</p>
+    <form class="signup-form" onsubmit="handleSignup(event, 'cta')">
+      <input type="email" id="cta-email" placeholder="Your email address" autocomplete="email" required>
+      <button type="submit">Join the List</button>
+    </form>
+    <div class="signup-perks">
+      <span class="perk">Free novel</span>
+      <span class="perk">Release alerts</span>
+      <span class="perk">No spam, ever</span>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">MAC WORDEN</div>
+      <div class="footer-copy">&copy; 2026 Mac Worden &middot; All Rights Reserved</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#newsletter">Newsletter</a></li>
+      <li><a href="#series">Series</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="mailto:hello@macworden.com">Contact</a></li>
+    </ul>
+  </div>
+</footer>
+
+<!-- Tweaks mount -->
+<div id="tweaks-root"></div>
+
+<!-- TWEAKS -->
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "accent": "#D9A55F",
+    "showSnow": true,
+    "bookTilt": false,
+    "heroBg": "noir",
+    "heroFont": "bebas",
+    "heroLetterSpacing": 8.5,
+    "heroWeight": "medium"
+  }/*EDITMODE-END*/;
+
+  function TweaksApp() {
+    const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+    React.useEffect(() => {
+      document.documentElement.style.setProperty('--gold', t.accent);
+      const snow = document.getElementById('snow');
+      if (snow) snow.style.display = t.showSnow ? 'block' : 'none';
+      const bf = document.querySelector('.book-frame');
+      if (bf) bf.style.transform = t.bookTilt ? '' : 'none';
+      document.body.setAttribute('data-hero-font', t.heroFont);
+      const name = document.querySelector('.hero-name');
+      if (name) {
+        name.style.letterSpacing = (t.heroLetterSpacing / 100) + 'em';
+        const weightMap = { thin: 300, light: 400, medium: 500, bold: 600 };
+        name.style.fontWeight = weightMap[t.heroWeight] || 400;
+      }
+      const hero = document.getElementById('hero');
+      if (hero) {
+        const bgs = {
+          noir: 'radial-gradient(ellipse 50% 45% at 30% 35%, rgba(217,165,95,0.06) 0%, transparent 70%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,36,24,0.06) 0%, transparent 70%), linear-gradient(180deg, #0A0E14 0%, #0E141C 100%)',
+          ember: 'radial-gradient(ellipse 70% 60% at 50% 100%, rgba(139,36,24,0.18) 0%, transparent 70%), linear-gradient(180deg, #0A0E14 0%, #1a0d0a 100%)',
+          deepblue: 'radial-gradient(ellipse 80% 60% at 50% 40%, rgba(40,80,140,0.18) 0%, transparent 70%), linear-gradient(180deg, #06080F 0%, #0a1424 100%)'
+        };
+        hero.style.background = bgs[t.heroBg] || bgs.noir;
+      }
+    }, [t]);
+
+    return (
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Hero Name" />
+        <TweakSelect label="Typeface" value={t.heroFont}
+          options={['condensed','barlow-bold','bebas','oswald','antonio','archivo']}
+          onChange={(v) => setTweak('heroFont', v)} />
+        <TweakRadio label="Weight" value={t.heroWeight}
+          options={['thin','light','medium','bold']}
+          onChange={(v) => setTweak('heroWeight', v)} />
+        <TweakSlider label="Letter spacing" value={t.heroLetterSpacing}
+          min={-2} max={20} step={0.5} unit=""
+          onChange={(v) => setTweak('heroLetterSpacing', v)} />
+
+        <TweakSection label="Theme" />
+        <TweakColor label="Accent" value={t.accent}
+          options={['#D9A55F','#C97A3A','#A82E22','#88AACF','#9BA88A']}
+          onChange={(v) => setTweak('accent', v)} />
+        <TweakRadio label="Hero mood" value={t.heroBg}
+          options={['noir','ember','deepblue']}
+          onChange={(v) => setTweak('heroBg', v)} />
+
+        <TweakSection label="Atmosphere" />
+        <TweakToggle label="Falling snow" value={t.showSnow}
+          onChange={(v) => setTweak('showSnow', v)} />
+        <TweakToggle label="3D book tilt" value={t.bookTilt}
+          onChange={(v) => setTweak('bookTilt', v)} />
+      </TweaksPanel>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<TweaksApp />);
+</script>
+</body>
+</html>
