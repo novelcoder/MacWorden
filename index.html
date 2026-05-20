@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="stylesheet" href="style.css">
-<script src="script.js" defer></script>
-<script src="mailerlite.js" defer></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mac Worden — Mystery & Thriller Author</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Archivo+Narrow:wght@500;600;700&family=Barlow+Condensed:wght@300;400;500;600&family=Bebas+Neue&family=Big+Shoulders+Stencil+Display:wght@400;600;700;800&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Oswald:wght@300;400;500;600&family=Spectral:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
 
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
@@ -47,7 +46,7 @@
     </div>
 
     <!-- RIGHT — name, book meta, email -->
-    <div class="hero-right fade-up" id="signup">
+    <div class="hero-right fade-up">
       <div class="hero-rule"></div>
       <p class="hero-label">Mystery &amp; Thriller Author</p>
       <h1 class="hero-name">MAC<br><span class="accent">WORDEN</span></h1>
@@ -66,7 +65,7 @@
       </div>
 
       <!-- Email capture -->
-      <h2 class="signup-heading">Get a <em>free novel</em> when you<br>join the reader list.</h2>
+      <h2 class="signup-heading" id="signup">Get a <em>free novel</em> when you<br>join the reader list.</h2>
       <p class="signup-sub">Sign up and Mac will send you a free ebook copy of <em>When Justice Calls</em> &mdash; book one of A Henry Biggston Thriller &mdash; plus a release-day alert when <em>Stray Evidence</em> drops.</p>
 
       <form class="signup-form" id="nl-form" onsubmit="handleSignup(event)">
