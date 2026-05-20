@@ -2,12 +2,18 @@ export default async ({ req, res, log, error }) => {
   const MAILERLITE_API_KEY = process.env.MAILERLITE_API_KEY;
   const MAILERLITE_GROUP_ID = process.env.MAILERLITE_GROUP_ID;
 
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
   if (req.method === 'OPTIONS') {
-    return res.empty();
+    return res.empty(corsHeaders);
   }
 
   if (req.method !== 'POST') {
-    return res.json({ error: 'Method not allowed' }, 405);
+    return res.json({ error: 'Method not allowed' }, 405, corsHeaders);
   }
 
   let email;
@@ -15,11 +21,11 @@ export default async ({ req, res, log, error }) => {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     email = body?.email?.trim();
   } catch {
-    return res.json({ error: 'Invalid request body' }, 400);
+    return res.json({ error: 'Invalid request body' }, 400, corsHeaders);
   }
 
   if (!email || !email.includes('@')) {
-    return res.json({ error: 'Invalid email address' }, 400);
+    return res.json({ error: 'Invalid email address' }, 400, corsHeaders);
   }
 
   log(`Subscribing: ${email}`);
@@ -39,8 +45,8 @@ export default async ({ req, res, log, error }) => {
   if (!response.ok) {
     const text = await response.text();
     error(`MailerLite error ${response.status}: ${text}`);
-    return res.json({ error: 'Subscription failed' }, 502);
+    return res.json({ error: 'Subscription failed' }, 502, corsHeaders);
   }
 
-  return res.json({ success: true });
+  return res.json({ success: true }, 200, corsHeaders);
 };
