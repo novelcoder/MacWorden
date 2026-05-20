@@ -24,7 +24,7 @@
   });
 
   // Email signup
-  const SUBSCRIBE_URL = 'https://6a0cc101003960e2d810.sfo.appwrite.run/';
+  const SUBSCRIBE_URL = 'https://6a0d050f0009f1272cb1.sfo.appwrite.run/';
 
   async function handleSignup(e, src) {
     if (e) e.preventDefault();
