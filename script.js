@@ -23,6 +23,14 @@
     nav.classList.toggle('scrolled', window.scrollY > 60);
   });
 
+  // Center #signup in viewport when any link to it is clicked
+  document.querySelectorAll('a[href="#signup"]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      document.getElementById('signup').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
   // Email signup
   const SUBSCRIBE_URL = 'https://6a0d050f0009f1272cb1.sfo.appwrite.run/';
 
