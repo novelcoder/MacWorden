@@ -3,18 +3,19 @@ export default async ({ req, res, log, error }) => {
   const MAILERLITE_GROUP_ID = process.env.MAILERLITE_GROUP_ID;
 
   const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  // Added common Appwrite and requested headers
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-appwrite-project, x-appwrite-jwt, x-appwrite-key',
-};
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-appwrite-project, x-appwrite-jwt, x-appwrite-key',
+  };
 
+  const method = (req.method || '').toUpperCase();
+  log(`Method: ${method}`);
 
-  if (req.method === 'OPTIONS') {
-    return res.empty(corsHeaders);
+  if (method === 'OPTIONS') {
+    return res.json({}, 200, corsHeaders);
   }
 
-  if (req.method !== 'POST') {
+  if (method !== 'POST') {
     return res.json({ error: 'Method not allowed' }, 405, corsHeaders);
   }
 
