@@ -3,10 +3,12 @@ export default async ({ req, res, log, error }) => {
   const MAILERLITE_GROUP_ID = process.env.MAILERLITE_GROUP_ID;
 
   const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  // Added common Appwrite and requested headers
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-appwrite-project, x-appwrite-jwt, x-appwrite-key',
+};
+
 
   if (req.method === 'OPTIONS') {
     return res.empty(corsHeaders);
