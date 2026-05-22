@@ -107,7 +107,7 @@
         <div class="series-num">01</div>
         <span class="series-tag">Now &mdash; Stray Evidence</span>
         <div class="series-name">A Jack<br>&amp; Coke<br>Mystery</div>
-        <p class="series-desc">A big city detective who's lost his family, a clever puppy in need of a home, and a small Minnesota town where the snow hides more than it covers. A warm-hearted mystery for readers who like their detectives a little broken.</p>
+        <p class="series-desc">Loading description…</p>
         <div class="series-meta">
           <span>Book 1 &middot; Releasing soon</span>
           <span class="arrow">&rarr;</span>
@@ -118,7 +118,7 @@
         <div class="series-num">02</div>
         <span class="series-tag">Out Now &mdash; When Justice Calls</span>
         <div class="series-name">A Henry<br>Biggston<br>Thriller</div>
-        <p class="series-desc">High-stakes thrillers built for readers of Reacher and Bosch. Biggston works in the spaces the system won't touch &mdash; and the bodies tend to follow.</p>
+        <p class="series-desc">Loading description…</p>
         <div class="series-meta">
           <span>1 Book &middot; Available now</span>
           <span class="arrow">&rarr;</span>
@@ -129,7 +129,7 @@
         <div class="series-num">03</div>
         <span class="series-tag">Two Books &mdash; Sage Creek &amp; Crosshairs</span>
         <div class="series-name">A Colby<br>Watts<br>Thriller</div>
-        <p class="series-desc">A small-town deputy with a target on his back and a stretch of country that doesn't forgive. <em>Deputy in the Crosshairs</em> and <em>Manhunt at Sage Creek</em> &mdash; with more on the way.</p>
+        <p class="series-desc">Loading description…</p>
         <div class="series-meta">
           <span>2 Books &middot; Ongoing</span>
           <span class="arrow">&rarr;</span>
@@ -189,6 +189,38 @@
     </ul>
   </div>
 </footer>
+
+<!-- Series card descriptions from Appwrite -->
+<script type="module">
+  import { Client, Databases, Query } from 'https://cdn.jsdelivr.net/npm/appwrite@16.0.2/+esm';
+
+  const ENDPOINT   = 'https://sfo.cloud.appwrite.io/v1';
+  const PROJECT_ID = '6a0b4638002a71c2b8ec';
+  const DB_ID      = '6a0b628900008b8506e3';
+  const COLLECTION = 'series';
+
+  try {
+    const db = new Databases(new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID));
+    const res = await db.listDocuments(DB_ID, COLLECTION, [Query.limit(25)]);
+
+    const bySlug = {};
+    for (const doc of res.documents) {
+      if (doc.slug) bySlug[doc.slug] = doc;
+    }
+
+    document.querySelectorAll('.series-card').forEach(card => {
+      const match = card.getAttribute('href').match(/[?&]series=([^&]+)/);
+      if (!match) return;
+      const doc = bySlug[match[1]];
+      if (doc && doc.card_description) {
+        const el = card.querySelector('.series-desc');
+        if (el) el.textContent = doc.card_description;
+      }
+    });
+  } catch (e) {
+    console.warn('Could not load series descriptions from Appwrite:', e.message);
+  }
+</script>
 
 <!-- Tweaks mount -->
 <div id="tweaks-root"></div>
