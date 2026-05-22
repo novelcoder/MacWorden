@@ -708,7 +708,8 @@
     const available = books.filter(b => b.status === 'published' || b.status === 'best_seller').length;
     const coming = books.filter(b => b.status === 'coming_soon').length;
 
-    document.title = series.name + ' — Mac Worden';
+    const heading = series.series_heading || series.name;
+    document.title = heading + ' — Mac Worden';
 
     const root = document.getElementById('page-root');
     root.innerHTML = `
@@ -719,10 +720,10 @@
             <span class="sep">/</span>
             <a href="index.html#series">Series</a>
             <span class="sep">/</span>
-            <span>${esc(series.name)}</span>
+            <span>${esc(heading)}</span>
           </div>
           ${series.tagline ? `<p class="series-eyebrow">${esc(series.tagline)}</p>` : ''}
-          <h1 class="series-title">${esc(series.name)}</h1>
+          <h1 class="series-title">${esc(heading)}</h1>
           ${series.description ? `<p class="series-intro">${esc(series.description)}</p>` : ''}
           <div class="series-stats">
             <div>
