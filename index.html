@@ -106,7 +106,7 @@
       <a href="Series.html?series=jack-and-coke" class="series-card featured reveal">
         <div class="series-num">01</div>
         <span class="series-tag">Now &mdash; Stray Evidence</span>
-        <div class="series-name">A Jack<br>&amp; Coke<br>Mystery</div>
+        <div class="series-name"></div>
         <p class="series-desc">Loading description…</p>
         <div class="series-meta">
           <span>Book 1 &middot; Releasing soon</span>
@@ -117,7 +117,7 @@
       <a href="Series.html?series=henry-biggston" class="series-card reveal">
         <div class="series-num">02</div>
         <span class="series-tag">Out Now &mdash; When Justice Calls</span>
-        <div class="series-name">A Henry<br>Biggston<br>Thriller</div>
+        <div class="series-name"></div>
         <p class="series-desc">Loading description…</p>
         <div class="series-meta">
           <span>1 Book &middot; Available now</span>
@@ -128,7 +128,7 @@
       <a href="Series.html?series=colby-watts" class="series-card reveal">
         <div class="series-num">03</div>
         <span class="series-tag">Two Books &mdash; Sage Creek &amp; Crosshairs</span>
-        <div class="series-name">A Colby<br>Watts<br>Thriller</div>
+        <div class="series-name"></div>
         <p class="series-desc">Loading description…</p>
         <div class="series-meta">
           <span>2 Books &middot; Ongoing</span>
@@ -212,7 +212,12 @@
       const match = card.getAttribute('href').match(/[?&]series=([^&]+)/);
       if (!match) return;
       const doc = bySlug[match[1]];
-      if (doc && doc.card_description) {
+      if (!doc) return;
+      if (doc.series_heading) {
+        const el = card.querySelector('.series-name');
+        if (el) el.textContent = doc.series_heading;
+      }
+      if (doc.card_description) {
         const el = card.querySelector('.series-desc');
         if (el) el.textContent = doc.card_description;
       }
