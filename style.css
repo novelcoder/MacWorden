@@ -583,6 +583,11 @@
     line-height: 1;
     opacity: 0.5;
     letter-spacing: 0.04em;
+    transition: color 0.3s, opacity 0.3s;
+  }
+  .series-card:hover .series-num {
+    color: var(--gold);
+    opacity: 0.9;
   }
   .series-tag {
     font-family: 'Barlow Condensed', sans-serif;
@@ -620,20 +625,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: color 0.3s;
   }
   .series-meta .arrow {
     color: var(--gold);
-    transition: transform 0.3s;
+    transition: transform 0.3s, color 0.3s;
   }
-  .series-card:hover .arrow { transform: translateX(4px); }
+  .series-card:hover .series-meta { color: var(--paper); }
+  .series-card:hover .series-meta .arrow { transform: translateX(4px); color: var(--paper); }
 
   /* Highlight Jack & Coke as the featured series */
   .series-card.featured {
     background: linear-gradient(180deg, rgba(217,165,95,0.06) 0%, var(--ink-3) 100%);
     border-color: var(--border-strong);
   }
-  .series-card.featured::before { transform: scaleX(1); background: var(--gold); }
-  .series-card.featured .series-num { color: var(--gold); opacity: 0.9; }
 
   /* ─────────── ABOUT ─────────── */
   #about {
