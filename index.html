@@ -101,42 +101,7 @@
       <p class="series-intro">Each series stands alone but share a single, uncompromising focus on good people, doing the right thing under extraordinary circumstances.</p>
     </div>
 
-    <div class="series-grid">
-
-      <a href="Series.html?series=jack-and-coke" class="series-card featured reveal">
-        <div class="series-num">01</div>
-        <span class="series-tag">Now &mdash; Stray Evidence</span>
-        <div class="series-name"></div>
-        <p class="series-desc">Loading description…</p>
-        <div class="series-meta">
-          <span>Book 1 &middot; Releasing soon</span>
-          <span class="arrow">&rarr;</span>
-        </div>
-      </a>
-
-      <a href="Series.html?series=henry-biggston" class="series-card reveal">
-        <div class="series-num">02</div>
-        <span class="series-tag">Out Now &mdash; When Justice Calls</span>
-        <div class="series-name"></div>
-        <p class="series-desc">Loading description…</p>
-        <div class="series-meta">
-          <span>1 Book &middot; Available now</span>
-          <span class="arrow">&rarr;</span>
-        </div>
-      </a>
-
-      <a href="Series.html?series=colby-watts" class="series-card reveal">
-        <div class="series-num">03</div>
-        <span class="series-tag">Two Books &mdash; Sage Creek &amp; Crosshairs</span>
-        <div class="series-name"></div>
-        <p class="series-desc">Loading description…</p>
-        <div class="series-meta">
-          <span>2 Books &middot; Ongoing</span>
-          <span class="arrow">&rarr;</span>
-        </div>
-      </a>
-
-    </div>
+    <div class="series-grid" id="series-grid"></div>
   </div>
 </section>
 
@@ -191,7 +156,7 @@
   </div>
 </footer>
 
-<!-- Series card descriptions from Appwrite -->
+<!-- Series cards from Appwrite -->
 <script type="module">
   import { Client, Databases, Query } from 'https://cdn.jsdelivr.net/npm/appwrite@16.0.2/+esm';
 
@@ -200,31 +165,46 @@
   const DB_ID      = '6a0b628900008b8506e3';
   const COLLECTION = 'series';
 
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function cardHtml(doc, idx) {
+    const num    = String(doc.display_order ?? idx + 1).padStart(2, '0');
+    const isFeatured = idx === 0 ? ' featured' : '';
+    return `
+      <a href="Series?series=${esc(doc.slug)}" class="series-card${isFeatured} reveal">
+        <div class="series-num">${esc(num)}</div>
+        ${doc.card_tag ? `<span class="series-tag">${esc(doc.card_tag)}</span>` : ''}
+        <div class="series-name">${esc(doc.series_heading ?? '')}</div>
+        <p class="series-desc">${esc(doc.card_description ?? '')}</p>
+        <div class="series-meta">
+          <span>${esc(doc.card_meta ?? '')}</span>
+          <span class="arrow">&rarr;</span>
+        </div>
+      </a>`;
+  }
+
   try {
-    const db = new Databases(new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID));
-    const res = await db.listDocuments(DB_ID, COLLECTION, [Query.limit(25)]);
+    const db  = new Databases(new Client().setEndpoint(ENDPOINT).setProject(PROJECT_ID));
+    const res = await db.listDocuments(DB_ID, COLLECTION, [
+      Query.orderAsc('display_order'),
+      Query.limit(25)
+    ]);
 
-    const bySlug = {};
-    for (const doc of res.documents) {
-      if (doc.slug) bySlug[doc.slug] = doc;
+    const grid = document.getElementById('series-grid');
+    if (grid) {
+      grid.innerHTML = res.documents.map(cardHtml).join('');
+
+      // Wire up scroll-reveal for the new cards
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('on'); io.unobserve(en.target); } });
+      }, { threshold: 0.12 });
+      grid.querySelectorAll('.reveal').forEach(el => io.observe(el));
     }
-
-    document.querySelectorAll('.series-card').forEach(card => {
-      const match = card.getAttribute('href').match(/[?&]series=([^&]+)/);
-      if (!match) return;
-      const doc = bySlug[match[1]];
-      if (!doc) return;
-      if (doc.series_heading) {
-        const el = card.querySelector('.series-name');
-        if (el) el.textContent = doc.series_heading;
-      }
-      if (doc.card_description) {
-        const el = card.querySelector('.series-desc');
-        if (el) el.textContent = doc.card_description;
-      }
-    });
   } catch (e) {
-    console.warn('Could not load series descriptions from Appwrite:', e.message);
+    console.warn('Could not load series from Appwrite:', e.message);
   }
 </script>
 
