@@ -782,6 +782,7 @@
     databaseId:      '6a0b628900008b8506e3',
     seriesCollection: 'series',
     booksCollection:  'books',
+    siteId:          '6a50421f00049e6726ae',
     defaultSlug:     'colby-watts'   // shown if no ?series= param
   };
   // ───────────────────────────────────────────────────────────
@@ -801,7 +802,11 @@
     const seriesRes = await db.listDocuments(
       APPWRITE_CONFIG.databaseId,
       APPWRITE_CONFIG.seriesCollection,
-      [ Query.equal('slug', slug), Query.limit(1) ]
+      [
+        Query.equal('slug', slug),
+        Query.equal('sites', APPWRITE_CONFIG.siteId),
+        Query.limit(1)
+      ]
     );
     if (!seriesRes.documents.length) {
       window.__renderNotFound(slug);
