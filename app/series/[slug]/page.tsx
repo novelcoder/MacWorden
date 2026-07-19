@@ -199,7 +199,7 @@ function SeriesNotFound({ slug }: { slug: string }) {
 function SeriesLoadError({ error }: { error: unknown }) {
   const msg = error instanceof Error ? error.message : String(error);
   const hint = /401|not authorized|missing scope/i.test(msg)
-    ? "The server could not authenticate with Appwrite. Check that APPWRITE_API_KEY is set and has the databases.read and documents.read scopes."
+    ? "The server could not authenticate with Appwrite. Check that CMS_API_KEY is set and has the databases.read and documents.read scopes."
     : "Check the Appwrite environment variables (endpoint, project ID, database ID, API key) in the server environment.";
   return (
     <section id="series-header" className={styles.seriesHeader}>

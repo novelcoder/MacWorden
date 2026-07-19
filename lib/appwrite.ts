@@ -47,20 +47,20 @@ let databases: Databases | null = null;
 function getDatabases(): Databases {
   if (!databases) {
     const client = new Client()
-      .setEndpoint(requiredEnv("APPWRITE_ENDPOINT"))
-      .setProject(requiredEnv("APPWRITE_PROJECT_ID"))
-      .setKey(requiredEnv("APPWRITE_API_KEY"));
+      .setEndpoint(requiredEnv("CMS_ENDPOINT"))
+      .setProject(requiredEnv("CMS_PROJECT_ID"))
+      .setKey(requiredEnv("CMS_API_KEY"));
     databases = new Databases(client);
   }
   return databases;
 }
 
 function databaseId(): string {
-  return requiredEnv("APPWRITE_DATABASE_ID");
+  return requiredEnv("CMS_DATABASE_ID");
 }
 
 function siteId(): string {
-  return requiredEnv("APPWRITE_SITE_ID");
+  return requiredEnv("CMS_SITE_ID");
 }
 
 export async function getSiteSetting(key: string): Promise<string> {
