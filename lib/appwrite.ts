@@ -106,11 +106,30 @@ export async function getSeriesList(): Promise<SeriesDoc[]> {
 }
 
 export async function getSeriesBySlug(slug: string): Promise<SeriesDoc | null> {
+  // TEMPORARY DEBUG INSTRUMENTATION — remove once the "Series Not Found" mystery is solved.
+  console.log("DEBUG getSeriesBySlug", {
+    slugArg: JSON.stringify(slug),
+    databaseId: JSON.stringify(databaseId()),
+    siteId: JSON.stringify(siteId()),
+    siteIdLength: siteId().length,
+  });
+  const slugOnly = await getDatabases().listDocuments<SeriesDoc>(databaseId(), SERIES_COLLECTION, [
+    Query.equal("slug", slug),
+    Query.limit(5),
+  ]);
+  console.log(
+    "DEBUG slug-only query",
+    JSON.stringify(
+      slugOnly.documents.map((d) => ({ id: d.$id, slug: d.slug, sites: (d as unknown as Record<string, unknown>).sites }))
+    )
+  );
+
   const res = await getDatabases().listDocuments<SeriesDoc>(databaseId(), SERIES_COLLECTION, [
     Query.equal("slug", slug),
     Query.equal("sites", siteId()),
     Query.limit(1),
   ]);
+  console.log("DEBUG slug+sites query total", res.total);
   return res.documents[0] ?? null;
 }
 
