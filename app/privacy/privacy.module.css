@@ -1,0 +1,184 @@
+/* Privacy page — uses site palette + type scale from app/globals.css */
+
+.privacy {
+  min-height: 100vh;
+  padding: 9rem 3rem 6rem;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 20%, rgba(217, 165, 95, 0.05) 0%, transparent 70%),
+    linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+}
+.wrap {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.eyebrow::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: var(--gold);
+}
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--paper);
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+.title em { font-style: italic; color: var(--gold); }
+.stamp {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 3rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--border);
+}
+.lede {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(1.15rem, 1.7vw, 1.4rem);
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--paper);
+  margin-bottom: 3.5rem;
+  max-width: 56ch;
+}
+.lede em {
+  font-style: normal;
+  color: var(--gold);
+  letter-spacing: 0.01em;
+}
+.section {
+  margin-bottom: 2.75rem;
+}
+.section h2 {
+  font-family: 'Big Shoulders Stencil Display', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--paper);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+.section h2::before {
+  content: attr(data-num);
+  font-family: 'Big Shoulders Stencil Display', sans-serif;
+  font-size: 0.85rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+.section p {
+  font-family: 'Spectral', serif;
+  font-size: 1.02rem;
+  font-weight: 300;
+  color: var(--paper-dim);
+  line-height: 1.85;
+  margin-bottom: 1rem;
+}
+.section p:last-child { margin-bottom: 0; }
+.section em { color: var(--paper); font-style: italic; }
+.section strong {
+  color: var(--paper);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+.list {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+.list li {
+  font-family: 'Spectral', serif;
+  font-size: 1.02rem;
+  font-weight: 300;
+  color: var(--paper-dim);
+  line-height: 1.75;
+  padding: 0.55rem 0 0.55rem 1.5rem;
+  border-bottom: 1px dashed var(--border);
+  position: relative;
+}
+.list li:last-child { border-bottom: none; }
+.list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 1.15rem;
+  width: 6px;
+  height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+.contact {
+  margin-top: 4rem;
+  padding: 2rem 2.25rem;
+  background: rgba(217, 165, 95, 0.05);
+  border: 1px solid var(--border-strong);
+}
+.contactLabel {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+.contactBody {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--paper);
+  line-height: 1.5;
+}
+.contactBody a {
+  color: var(--gold);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-strong);
+  font-style: normal;
+  letter-spacing: 0.02em;
+}
+.contactBody a:hover { color: var(--paper); border-bottom-color: var(--gold); }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 3rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.back:hover { color: var(--gold); }
+.back::before {
+  content: '←';
+  font-family: 'Spectral', serif;
+  letter-spacing: 0;
+}
+
+@media (max-width: 980px) {
+  .privacy { padding: 7rem 1.5rem 4rem; }
+  .contact { padding: 1.5rem; }
+}

@@ -1,0 +1,294 @@
+/* Series detail page — styles unique to this route (not already in app/globals.css). */
+
+.seriesHeader {
+  padding: 9rem 3rem 4rem;
+  position: relative;
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 30%, rgba(217, 165, 95, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139, 36, 24, 0.06) 0%, transparent 70%),
+    linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.crumbs {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.crumbs a {
+  color: var(--paper-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.crumbs a:hover { color: var(--gold); }
+.crumbs .sep { color: var(--gold-deep); }
+
+.seriesEyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.seriesEyebrow::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: var(--gold);
+}
+
+.seriesTitle {
+  font-family: 'Big Shoulders Stencil Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(3rem, 8vw, 6.5rem);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  color: var(--paper);
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+.seriesTitle em { font-style: normal; color: var(--gold); }
+
+.seriesIntro {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+  color: var(--paper-dim);
+  max-width: 64ch;
+  line-height: 1.55;
+  margin-bottom: 2rem;
+}
+
+.seriesStats {
+  display: flex;
+  gap: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.statNum {
+  font-family: 'Big Shoulders Stencil Display', sans-serif;
+  font-weight: 700;
+  font-size: 2rem;
+  color: var(--gold);
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+.statLabel {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+  margin-top: 0.4rem;
+}
+
+.books {
+  padding: 5rem 3rem 6rem;
+  background: var(--ink-2);
+}
+
+.booksLabel {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+.booksLabel::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: var(--gold);
+}
+
+.bookRow {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 4rem;
+  padding: 3rem 0;
+  border-top: 1px solid var(--border);
+  align-items: start;
+}
+.bookRow:last-child { border-bottom: 1px solid var(--border); }
+
+.bookCoverWrap {
+  position: relative;
+  perspective: 1400px;
+}
+.bookCover {
+  position: relative;
+  transform: rotateY(-4deg) rotateX(1deg);
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(.2, .7, .2, 1);
+}
+.bookCover:hover { transform: rotateY(0deg) rotateX(0deg) translateY(-3px); }
+.bookCover img {
+  width: 100%;
+  display: block;
+  background: #1a1f29;
+  box-shadow:
+    0 0 0 1px rgba(217, 165, 95, 0.12),
+    14px 18px 48px rgba(0, 0, 0, 0.6),
+    -4px -4px 24px rgba(217, 165, 95, 0.04);
+}
+.bookSpine {
+  position: absolute;
+  left: -7px;
+  top: 4px;
+  bottom: 4px;
+  width: 7px;
+  background: linear-gradient(to right, #050709, #0f1118);
+  transform: skewY(2deg);
+}
+
+.bookBadge {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  background: var(--gold);
+  color: #000;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.85rem;
+  z-index: 3;
+  box-shadow: 0 6px 18px rgba(217, 165, 95, 0.3);
+}
+.bookBadgeComing {
+  background: var(--crimson);
+  color: var(--paper);
+  box-shadow: 0 6px 18px rgba(139, 36, 24, 0.45);
+}
+
+.bookInfo { padding-top: 0.5rem; }
+
+.bookNumber {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.bookNumberDot {
+  width: 4px;
+  height: 4px;
+  background: var(--gold);
+  border-radius: 50%;
+}
+.bookNumberStatus {
+  color: var(--paper-dim);
+  letter-spacing: 0.22em;
+}
+
+.bookTitle {
+  font-family: 'Big Shoulders Stencil Display', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 0.98;
+  letter-spacing: 0.02em;
+  color: var(--paper);
+  text-transform: uppercase;
+  margin-bottom: 0.9rem;
+}
+
+.bookTagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+  color: var(--gold);
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+  max-width: 52ch;
+}
+
+.bookBlurb {
+  font-family: 'Spectral', serif;
+  font-weight: 300;
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: var(--paper-dim);
+  max-width: 62ch;
+  margin-bottom: 2rem;
+}
+.bookBlurb p + p { margin-top: 1rem; }
+
+.bookCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #000;
+  background: var(--gold);
+  border: none;
+  padding: 0.95rem 1.8rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 14px rgba(217, 165, 95, 0.25);
+}
+.bookCta:hover {
+  background: #E8B976;
+  box-shadow: 0 4px 22px rgba(217, 165, 95, 0.45);
+  transform: translateY(-1px);
+}
+.bookCtaArrow { transition: transform 0.2s; }
+.bookCta:hover .bookCtaArrow { transform: translateX(3px); }
+
+.empty {
+  text-align: center;
+  padding: 8rem 1rem;
+}
+.empty h2 {
+  font-family: 'Big Shoulders Stencil Display', sans-serif;
+  font-weight: 700;
+  font-size: 2.5rem;
+  color: var(--paper);
+  letter-spacing: 0.04em;
+  margin-bottom: 1rem;
+}
+.empty p {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--paper-dim);
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) {
+  .seriesHeader { padding: 7rem 1.5rem 3rem; }
+  .books { padding: 4rem 1.5rem 5rem; }
+  .bookRow { grid-template-columns: 1fr; gap: 2rem; }
+  .bookCoverWrap { max-width: 240px; }
+}
