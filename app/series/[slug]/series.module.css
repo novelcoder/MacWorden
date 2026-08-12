@@ -129,6 +129,7 @@
   padding: 3rem 0;
   border-top: 1px solid var(--border);
   align-items: start;
+  scroll-margin-top: 110px;
 }
 .bookRow:last-child { border-bottom: 1px solid var(--border); }
 
