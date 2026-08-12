@@ -43,10 +43,14 @@ export default async function HomePage() {
           {/* LEFT — book cover */}
           <div className="book-stage fade-up" id="book">
             <span className="coming-tag">Coming Soon</span>
-            <div className="book-frame">
+            <a
+              href={heroBook?.storeUrl || "#book"}
+              className="book-frame"
+              {...(heroBook?.storeUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            >
               <div className="book-spine" />
               <img id="hero-book-cover" src={heroBook?.src} alt={heroBook?.alt ?? ""} />
-            </div>
+            </a>
           </div>
 
           {/* RIGHT — name, book meta, email */}
@@ -70,7 +74,11 @@ export default async function HomePage() {
                 <span className="book-meta-title">STRAY EVIDENCE</span>
                 <span className="book-meta-series">A Jack and Coke Mystery</span>
               </div>
-              <a href="#book" className="book-meta-cta">
+              <a
+                href={heroBook?.storeUrl || "#book"}
+                className="book-meta-cta"
+                {...(heroBook?.storeUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              >
                 Read the Story
               </a>
             </div>

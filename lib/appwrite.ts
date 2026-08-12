@@ -78,7 +78,7 @@ export async function getSiteSetting(key: string): Promise<string> {
   return value;
 }
 
-export async function getHeroBook(): Promise<{ src: string; alt: string }> {
+export async function getHeroBook(): Promise<{ src: string; alt: string; storeUrl?: string }> {
   const heroBookId = await getSiteSetting(HERO_BOOK_KEY);
   const book = await getDatabases().getDocument<BookDoc>(databaseId(), BOOKS_COLLECTION, heroBookId);
 
@@ -89,6 +89,7 @@ export async function getHeroBook(): Promise<{ src: string; alt: string }> {
   return {
     src: book.cover_url,
     alt: book.cover_alt || `${book.title || "Featured book"} cover`,
+    storeUrl: book.store_url,
   };
 }
 
@@ -122,4 +123,20 @@ export async function getBooksForSeries(seriesId: string): Promise<BookDoc[]> {
     Query.limit(100),
   ]);
   return res.documents;
+}
+
+export async function getAllBooks(): Promise<BookDoc[]> {
+  const res = await getDatabases().listDocuments<BookDoc>(databaseId(), BOOKS_COLLECTION, [
+    Query.notEqual("status", "draft"),
+    Query.limit(100),
+  ]);
+  return res.documents;
+}
+
+export async function getSeriesById(seriesId: string): Promise<SeriesDoc | null> {
+  try {
+    return await getDatabases().getDocument<SeriesDoc>(databaseId(), SERIES_COLLECTION, seriesId);
+  } catch {
+    return null;
+  }
 }

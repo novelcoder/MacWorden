@@ -173,6 +173,7 @@
     perspective: 1400px;
   }
   .book-frame {
+    display: block;
     position: relative;
     transform: rotateY(-6deg) rotateX(2deg);
     transform-style: preserve-3d;

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "./series.module.css";
 import RevealOnScroll from "@/components/RevealOnScroll";
+import ScrollToHash from "@/components/ScrollToHash";
 import BookCoverImage from "@/components/BookCoverImage";
 import { getSeriesBySlug, getBooksForSeries, type BookDoc } from "@/lib/appwrite";
 import { placeholderCover } from "@/lib/placeholderCover";
+import { slugifyTitle } from "@/lib/slugify";
 
 const STATUS_MAP: Record<string, { label: string; cta: string; coming: boolean }> = {
   coming_soon: { label: "Coming Soon", cta: "Pre-order", coming: true },
@@ -125,6 +127,7 @@ export default async function SeriesPage({
       </section>
 
       <RevealOnScroll />
+      <ScrollToHash />
     </>
   );
 }
@@ -137,7 +140,11 @@ function BookRow({ book, idx }: { book: BookDoc; idx: number }) {
   const blurb = (book.blurb || book.card_description || "").trim();
 
   return (
-    <article className={`${styles.bookRow} reveal`} style={{ transitionDelay: `${idx * 80}ms` }}>
+    <article
+      id={`book-${slugifyTitle(book.title)}`}
+      className={`${styles.bookRow} reveal`}
+      style={{ transitionDelay: `${idx * 80}ms` }}
+    >
       <div className={styles.bookCoverWrap}>
         <span className={`${styles.bookBadge} ${st.coming ? styles.bookBadgeComing : ""}`}>{st.label}</span>
         <div className={styles.bookCover}>
