@@ -17,7 +17,9 @@ export default function SiteNav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const onHome = pathname === "/";
   const onSeries = pathname.startsWith("/series");
+  const onBooks = pathname.startsWith("/books");
 
   return (
     <nav id="main-nav" className={scrolled ? "scrolled" : undefined}>
@@ -26,11 +28,18 @@ export default function SiteNav() {
       </Link>
       <ul className="nav-links">
         <li>
-          <Link href="/#book">The Book</Link>
+          <Link href="/" className={onHome ? "active" : undefined}>
+            Home
+          </Link>
         </li>
         <li>
           <Link href="/#series" className={onSeries ? "active" : undefined}>
             Series
+          </Link>
+        </li>
+        <li>
+          <Link href="/books" className={onBooks ? "active" : undefined}>
+            The Books
           </Link>
         </li>
         <li>
