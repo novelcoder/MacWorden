@@ -46,7 +46,13 @@ export default function SiteNav() {
           <Link href="/#about">About</Link>
         </li>
         <li>
-          <Link href="/#signup" className="btn-nav">
+          <Link
+            href="/#signup"
+            className="btn-nav"
+            data-analytics-event="reader_list_cta_click"
+            data-analytics-placement="navigation"
+            data-analytics-content-format="reader_list"
+          >
             Join the List
           </Link>
         </li>

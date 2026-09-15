@@ -70,6 +70,7 @@ function SeriesSection({ series, books, idx }: { series: SeriesDoc; books: BookD
   const heading = series.series_heading || series.name || series.slug;
   const number = String(series.display_order ?? idx + 1).padStart(2, "0");
   const available = books.some(isAvailable);
+  const listId = `books_${series.$id}`;
 
   return (
     <section className={`${styles.seriesSection} reveal`} data-screen-label={heading}>
@@ -85,9 +86,22 @@ function SeriesSection({ series, books, idx }: { series: SeriesDoc; books: BookD
         {series.card_description && <p className={styles.blurb}>{series.card_description}</p>}
 
         {books.length ? (
-          <div className={styles.grid}>
-            {books.map((book) => (
-              <BookCover key={book.$id} book={book} series={series} />
+          <div
+            className={styles.grid}
+            data-analytics-view-list="true"
+            data-analytics-list-id={listId}
+            data-analytics-list-name={`${heading} books`}
+            data-analytics-content-format="book"
+          >
+            {books.map((book, bookIdx) => (
+              <BookCover
+                key={book.$id}
+                book={book}
+                series={series}
+                listId={listId}
+                listName={`${heading} books`}
+                index={bookIdx}
+              />
             ))}
           </div>
         ) : (
@@ -98,14 +112,40 @@ function SeriesSection({ series, books, idx }: { series: SeriesDoc; books: BookD
   );
 }
 
-function BookCover({ book, series }: { book: BookDoc; series: SeriesDoc }) {
+function BookCover({
+  book,
+  series,
+  listId,
+  listName,
+  index,
+}: {
+  book: BookDoc;
+  series: SeriesDoc;
+  listId: string;
+  listName: string;
+  index: number;
+}) {
   const fallback = placeholderCover(book.title, series.name);
   const cover = book.cover_url && book.cover_url.length ? book.cover_url : fallback;
   const alt = book.cover_alt || `${book.title} cover`;
   const label = STATUS_LABEL[book.status] ?? book.status;
+  const seriesName = series.series_heading || series.name || series.slug;
 
   return (
-    <Link href={`/${slugifyTitle(book.title)}`} className={styles.cover}>
+    <Link
+      href={`/series/${series.slug}#book-${slugifyTitle(book.title)}`}
+      className={styles.cover}
+      data-analytics-item="true"
+      data-analytics-select-item="true"
+      data-analytics-item-id={book.$id}
+      data-analytics-item-name={book.title}
+      data-analytics-item-index={index}
+      data-analytics-item-category={seriesName}
+      data-analytics-item-variant={book.status}
+      data-analytics-list-id={listId}
+      data-analytics-list-name={listName}
+      data-analytics-content-format="book"
+    >
       <div className={styles.coverImageWrap}>
         <BookCoverImage src={cover} fallbackSrc={fallback} alt={alt} />
         {book.status === "coming_soon" && <span className={styles.soonPill}>Soon</span>}
