@@ -101,6 +101,11 @@
   font-weight: 400;
   letter-spacing: 0.01em;
 }
+.section a {
+  color: var(--gold);
+  text-underline-offset: 0.2em;
+}
+.section a:hover { color: var(--paper); }
 .list {
   list-style: none;
   margin: 0.5rem 0 0;

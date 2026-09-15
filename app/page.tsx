@@ -46,6 +46,12 @@ export default async function HomePage() {
             <a
               href={heroBook?.storeUrl || "#book"}
               className="book-frame"
+              data-analytics-event={heroBook?.storeUrl ? "retailer_link_click" : undefined}
+              data-analytics-item-id={heroBook?.id}
+              data-analytics-item-name={heroBook?.title}
+              data-analytics-link-text="Featured book cover"
+              data-analytics-placement="homepage_hero_cover"
+              data-analytics-content-format="book"
               {...(heroBook?.storeUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
               <div className="book-spine" />
@@ -77,6 +83,11 @@ export default async function HomePage() {
               <a
                 href={heroBook?.storeUrl || "#book"}
                 className="book-meta-cta"
+                data-analytics-event={heroBook?.storeUrl ? "retailer_link_click" : undefined}
+                data-analytics-item-id={heroBook?.id}
+                data-analytics-item-name={heroBook?.title}
+                data-analytics-placement="homepage_hero_details"
+                data-analytics-content-format="book"
                 {...(heroBook?.storeUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
                 Read the Story
@@ -129,12 +140,28 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="series-grid" id="series-grid">
+          <div
+            className="series-grid"
+            id="series-grid"
+            data-analytics-view-list="true"
+            data-analytics-list-id="homepage_series"
+            data-analytics-list-name="Homepage series"
+            data-analytics-content-format="series"
+          >
             {seriesList.map((doc, idx) => (
               <Link
                 key={doc.$id}
                 href={`/series/${doc.slug}`}
                 className={`series-card${idx === 0 ? " featured" : ""} reveal`}
+                data-analytics-item="true"
+                data-analytics-select-item="true"
+                data-analytics-item-id={doc.$id}
+                data-analytics-item-name={doc.series_heading || doc.name || doc.slug}
+                data-analytics-item-index={idx}
+                data-analytics-item-category="series"
+                data-analytics-list-id="homepage_series"
+                data-analytics-list-name="Homepage series"
+                data-analytics-content-format="series"
               >
                 <div className="series-num">{seriesCardNumber(doc, idx)}</div>
                 {doc.card_tag && <span className="series-tag">{doc.card_tag}</span>}

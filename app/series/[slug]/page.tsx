@@ -57,6 +57,8 @@ export default async function SeriesPage({
   const available = books.filter((b) => b.status === "published" || b.status === "best_seller").length;
   const coming = books.filter((b) => b.status === "coming_soon").length;
   const heading = series.series_heading || series.name || slug;
+  const listId = `series_${series.$id}_books`;
+  const listName = `${heading} books`;
 
   return (
     <>
@@ -116,10 +118,25 @@ export default async function SeriesPage({
       </section>
 
       <section id="books" className={styles.books} data-screen-label="Books">
-        <div className={styles.wrap}>
+        <div
+          className={styles.wrap}
+          data-analytics-view-list="true"
+          data-analytics-list-id={listId}
+          data-analytics-list-name={listName}
+          data-analytics-content-format="book"
+        >
           <p className={styles.booksLabel}>Books in the Series</p>
           {books.length ? (
-            books.map((book, idx) => <BookRow key={book.$id} book={book} idx={idx} />)
+            books.map((book, idx) => (
+              <BookRow
+                key={book.$id}
+                book={book}
+                idx={idx}
+                listId={listId}
+                listName={listName}
+                seriesName={heading}
+              />
+            ))
           ) : (
             <p className={styles.seriesIntro}>No books are listed for this series yet. Check back soon.</p>
           )}
@@ -132,7 +149,19 @@ export default async function SeriesPage({
   );
 }
 
-function BookRow({ book, idx }: { book: BookDoc; idx: number }) {
+function BookRow({
+  book,
+  idx,
+  listId,
+  listName,
+  seriesName,
+}: {
+  book: BookDoc;
+  idx: number;
+  listId: string;
+  listName: string;
+  seriesName: string;
+}) {
   const fallback = placeholderCover(book.title, "A Mac Worden Novel");
   const cover = book.cover_url && book.cover_url.length ? book.cover_url : fallback;
   const st = STATUS_MAP[book.status] ?? { label: book.status ?? "", cta: "Buy the Book", coming: false };
@@ -144,6 +173,16 @@ function BookRow({ book, idx }: { book: BookDoc; idx: number }) {
       id={`book-${slugifyTitle(book.title)}`}
       className={`${styles.bookRow} reveal`}
       style={{ transitionDelay: `${idx * 80}ms` }}
+      data-analytics-item="true"
+      data-analytics-view-item="true"
+      data-analytics-item-id={book.$id}
+      data-analytics-item-name={book.title}
+      data-analytics-item-index={idx}
+      data-analytics-item-category={seriesName}
+      data-analytics-item-variant={book.status}
+      data-analytics-list-id={listId}
+      data-analytics-list-name={listName}
+      data-analytics-content-format="book"
     >
       <div className={styles.bookCoverWrap}>
         <span className={`${styles.bookBadge} ${st.coming ? styles.bookBadgeComing : ""}`}>{st.label}</span>
@@ -168,7 +207,17 @@ function BookRow({ book, idx }: { book: BookDoc; idx: number }) {
         </div>
         {book.store_url && (
           <div>
-            <a className={styles.bookCta} href={book.store_url} target="_blank" rel="noopener noreferrer">
+            <a
+              className={styles.bookCta}
+              href={book.store_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-analytics-event="retailer_link_click"
+              data-analytics-item-id={book.$id}
+              data-analytics-item-name={book.title}
+              data-analytics-placement="series_book_details"
+              data-analytics-content-format="book"
+            >
               <span>{book.store_label || st.cta}</span>
               <span className={styles.bookCtaArrow}>&rarr;</span>
             </a>

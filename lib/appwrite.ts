@@ -78,7 +78,13 @@ export async function getSiteSetting(key: string): Promise<string> {
   return value;
 }
 
-export async function getHeroBook(): Promise<{ src: string; alt: string; storeUrl?: string }> {
+export async function getHeroBook(): Promise<{
+  id: string;
+  title: string;
+  src: string;
+  alt: string;
+  storeUrl?: string;
+}> {
   const heroBookId = await getSiteSetting(HERO_BOOK_KEY);
   const book = await getDatabases().getDocument<BookDoc>(databaseId(), BOOKS_COLLECTION, heroBookId);
 
@@ -87,6 +93,8 @@ export async function getHeroBook(): Promise<{ src: string; alt: string; storeUr
   }
 
   return {
+    id: book.$id,
+    title: book.title,
     src: book.cover_url,
     alt: book.cover_alt || `${book.title || "Featured book"} cover`,
     storeUrl: book.store_url,

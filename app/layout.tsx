@@ -3,6 +3,8 @@ import "./globals.css";
 import SnowOverlay from "@/components/SnowOverlay";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
+import { AnalyticsProvider } from "@/components/AnalyticsConsent";
+import { GOOGLE_ANALYTICS_ID } from "@/lib/analytics";
 
 export const metadata: Metadata = {
   title: {
@@ -34,10 +36,12 @@ export default function RootLayout({
         <link href={FONTS_URL} rel="stylesheet" />
       </head>
       <body>
-        <SnowOverlay />
-        <SiteNav />
-        {children}
-        <SiteFooter />
+        <AnalyticsProvider measurementId={GOOGLE_ANALYTICS_ID}>
+          <SnowOverlay />
+          <SiteNav />
+          {children}
+          <SiteFooter />
+        </AnalyticsProvider>
       </body>
     </html>
   );

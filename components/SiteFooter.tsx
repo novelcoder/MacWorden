@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CookieSettingsLink } from "@/components/AnalyticsConsent";
 
 export default function SiteFooter() {
   return (
@@ -10,7 +11,14 @@ export default function SiteFooter() {
         </div>
         <ul className="footer-links">
           <li>
-            <Link href="/#signup">Newsletter</Link>
+            <Link
+              href="/#signup"
+              data-analytics-event="reader_list_cta_click"
+              data-analytics-placement="footer"
+              data-analytics-content-format="reader_list"
+            >
+              Newsletter
+            </Link>
           </li>
           <li>
             <Link href="/#series">Series</Link>
@@ -19,8 +27,9 @@ export default function SiteFooter() {
             <Link href="/#about">About</Link>
           </li>
           <li>
-            <Link href="/privacy">Privacy</Link>
+            <Link href="/privacy">Privacy &amp; Cookies</Link>
           </li>
+          <CookieSettingsLink />
           <li>
             <a href="mailto:macworden@fickledragon.com">Contact</a>
           </li>

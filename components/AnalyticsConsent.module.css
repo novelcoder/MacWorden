@@ -1,0 +1,157 @@
+.banner {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  z-index: 1200;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: center;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.25rem 1.4rem;
+  background: rgba(10, 14, 20, 0.98);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+}
+
+.copy {
+  font-family: "Spectral", Georgia, serif;
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--paper-dim);
+}
+
+.copy strong {
+  color: var(--paper);
+  font-weight: 400;
+}
+
+.copy a {
+  color: var(--gold);
+  text-underline-offset: 0.2em;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(9.5rem, 1fr));
+  gap: 0.7rem;
+}
+
+.choiceButton {
+  min-height: 2.75rem;
+  padding: 0.7rem 1rem;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--paper);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.choiceButton:hover,
+.choiceButton:focus-visible {
+  background: var(--gold);
+  color: var(--ink);
+  outline: none;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(4, 6, 9, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.dialog {
+  position: relative;
+  width: min(100%, 560px);
+  padding: 2.25rem;
+  background: var(--ink-2);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65);
+}
+
+.eyebrow {
+  margin-bottom: 0.8rem;
+  color: var(--gold);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin-bottom: 1rem;
+  color: var(--paper);
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(2rem, 7vw, 3rem);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.description,
+.status {
+  color: var(--paper-dim);
+  font-family: "Spectral", Georgia, serif;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.status {
+  margin: 1.25rem 0 1.5rem;
+  padding: 0.8rem 1rem;
+  background: rgba(217, 165, 95, 0.05);
+  border-left: 2px solid var(--gold);
+}
+
+.status strong {
+  color: var(--paper);
+  font-weight: 400;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--paper-dim);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  border-color: var(--border-strong);
+  color: var(--gold);
+  outline: none;
+}
+
+@media (max-width: 720px) {
+  .banner {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog {
+    padding: 2rem 1.25rem 1.25rem;
+  }
+}
