@@ -424,8 +424,7 @@ export function AnalyticsProvider({
     if (!measurementId) return;
     const savedConsent = readConsentCookie();
     if (!savedConsent) disableAnalytics(measurementId);
-    const frame = requestAnimationFrame(() => setConsent(savedConsent ?? "undecided"));
-    return () => cancelAnimationFrame(frame);
+    setConsent(savedConsent ?? "undecided");
   }, [measurementId]);
 
   useEffect(() => {
@@ -436,12 +435,9 @@ export function AnalyticsProvider({
     }
 
     initializeAnalytics(measurementId);
-    const frame = requestAnimationFrame(() => {
-      recordPageView(pathname);
-      recordItemLists();
-      recordHashItem();
-    });
-    return () => cancelAnimationFrame(frame);
+    recordPageView(pathname);
+    recordItemLists();
+    recordHashItem();
   }, [consent, measurementId, pathname]);
 
   useEffect(() => {
