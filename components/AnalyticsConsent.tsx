@@ -105,8 +105,8 @@ function pageContext(): AnalyticsParameters {
   };
 }
 
-function gtag(...args: unknown[]) {
-  window.dataLayer?.push(args);
+function gtag() {
+  window.dataLayer?.push(arguments);
 }
 
 function requestAnalyticsScript(measurementId: string, runtime: AnalyticsRuntime) {
