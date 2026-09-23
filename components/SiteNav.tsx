@@ -33,7 +33,7 @@ export default function SiteNav() {
           </Link>
         </li>
         <li>
-          <Link href="/#series" className={onSeries ? "active" : undefined}>
+          <Link href="/series" className={onSeries ? "active" : undefined}>
             Series
           </Link>
         </li>

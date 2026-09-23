@@ -15,6 +15,41 @@
   margin: 0 auto;
 }
 
+.heroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 520px);
+  gap: clamp(2.5rem, 6vw, 5rem);
+  align-items: center;
+}
+
+.heroVideo {
+  position: relative;
+  padding: 0.75rem;
+  background: rgba(5, 7, 9, 0.76);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.48);
+}
+
+.heroVideoLabel {
+  position: absolute;
+  top: -1rem;
+  left: -1rem;
+  z-index: 3;
+  padding: 0.5rem 0.8rem;
+  background: var(--crimson);
+  color: var(--paper);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.heroVideo :global(.video-youtube-link) {
+  padding: 0.75rem 0.15rem 0.1rem;
+}
+
 .crumbs {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.75rem;
@@ -241,6 +276,34 @@
 }
 .bookBlurb p + p { margin-top: 1rem; }
 
+.releaseTiming {
+  margin: -0.5rem 0 1.5rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--paper);
+}
+
+.releaseSignup {
+  max-width: 560px;
+  padding: 1.4rem;
+  background: rgba(217, 165, 95, 0.06);
+  border: 1px solid var(--border-strong);
+}
+.releaseSignup > p {
+  margin-bottom: 0.9rem;
+  color: var(--paper-dim);
+  font-family: 'Spectral', serif;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.releaseSignup :global(.signup-form) {
+  max-width: none;
+  box-shadow: none;
+}
+
 .bookCta {
   display: inline-flex;
   align-items: center;
@@ -289,6 +352,8 @@
 
 @media (max-width: 900px) {
   .seriesHeader { padding: 7rem 1.5rem 3rem; }
+  .heroGrid { grid-template-columns: 1fr; }
+  .heroVideo { max-width: 620px; }
   .books { padding: 4rem 1.5rem 5rem; }
   .bookRow { grid-template-columns: 1fr; gap: 2rem; }
   .bookCoverWrap { max-width: 240px; }

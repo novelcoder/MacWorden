@@ -21,7 +21,7 @@ export default function SiteFooter() {
             </Link>
           </li>
           <li>
-            <Link href="/#series">Series</Link>
+            <Link href="/series">Series</Link>
           </li>
           <li>
             <Link href="/#about">About</Link>

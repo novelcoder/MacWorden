@@ -4,6 +4,8 @@ import styles from "./series.module.css";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import ScrollToHash from "@/components/ScrollToHash";
 import BookCoverImage from "@/components/BookCoverImage";
+import NewsletterForm from "@/components/NewsletterForm";
+import YouTubeFeatureVideo from "@/components/YouTubeFeatureVideo";
 import { getSeriesBySlug, getBooksForSeries, type BookDoc } from "@/lib/appwrite";
 import { placeholderCover } from "@/lib/placeholderCover";
 import { slugifyTitle } from "@/lib/slugify";
@@ -12,6 +14,17 @@ const STATUS_MAP: Record<string, { label: string; cta: string; coming: boolean }
   coming_soon: { label: "Coming Soon", cta: "Pre-order", coming: true },
   published: { label: "Available Now", cta: "Buy the Book", coming: false },
   best_seller: { label: "Best Seller", cta: "Buy the Book", coming: false },
+};
+
+const SERIES_HERO_VIDEOS: Record<
+  string,
+  { videoId: string; title: string; durationLabel: string }
+> = {
+  "bitter-lake-mysteries": {
+    videoId: "mEnfY79nA7A",
+    title: "Bitter Lake Letters introduction",
+    durationLabel: "9-second",
+  },
 };
 
 export async function generateMetadata({
@@ -57,6 +70,7 @@ export default async function SeriesPage({
   const available = books.filter((b) => b.status === "published" || b.status === "best_seller").length;
   const coming = books.filter((b) => b.status === "coming_soon").length;
   const heading = series.series_heading || series.name || slug;
+  const heroVideo = SERIES_HERO_VIDEOS[slug];
   const listId = `series_${series.$id}_books`;
   const listName = `${heading} books`;
 
@@ -67,50 +81,67 @@ export default async function SeriesPage({
           <div className={styles.crumbs}>
             <Link href="/">Home</Link>
             <span className={styles.sep}>/</span>
-            <Link href="/#series">Series</Link>
+            <Link href="/series">Series</Link>
             <span className={styles.sep}>/</span>
             <span>{heading}</span>
           </div>
-          {series.tagline && <p className={styles.seriesEyebrow}>{series.tagline}</p>}
-          <h1 className={styles.seriesTitle}>{heading}</h1>
-          {series.description && <p className={styles.seriesIntro}>{series.description}</p>}
-          <div className={styles.seriesStats}>
+          <div className={heroVideo ? styles.heroGrid : undefined}>
             <div>
-              <div className={styles.statNum}>{String(books.length).padStart(2, "0")}</div>
-              <div className={styles.statLabel}>
-                {books.length === 1 ? (
-                  <>
-                    Book in
-                    <br />
-                    the Series
-                  </>
-                ) : (
-                  <>
-                    Books in
-                    <br />
-                    the Series
-                  </>
+              {series.tagline && <p className={styles.seriesEyebrow}>{series.tagline}</p>}
+              <h1 className={styles.seriesTitle}>{heading}</h1>
+              {series.description && <p className={styles.seriesIntro}>{series.description}</p>}
+              <div className={styles.seriesStats}>
+                <div>
+                  <div className={styles.statNum}>{String(books.length).padStart(2, "0")}</div>
+                  <div className={styles.statLabel}>
+                    {books.length === 1 ? (
+                      <>
+                        Book in
+                        <br />
+                        the Series
+                      </>
+                    ) : (
+                      <>
+                        Books in
+                        <br />
+                        the Series
+                      </>
+                    )}
+                  </div>
+                </div>
+                {available > 0 && (
+                  <div>
+                    <div className={styles.statNum}>{String(available).padStart(2, "0")}</div>
+                    <div className={styles.statLabel}>
+                      Available
+                      <br />
+                      Now
+                    </div>
+                  </div>
+                )}
+                {coming > 0 && (
+                  <div>
+                    <div className={styles.statNum}>{String(coming).padStart(2, "0")}</div>
+                    <div className={styles.statLabel}>
+                      Coming
+                      <br />
+                      Soon
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-            {available > 0 && (
-              <div>
-                <div className={styles.statNum}>{String(available).padStart(2, "0")}</div>
-                <div className={styles.statLabel}>
-                  Available
-                  <br />
-                  Now
-                </div>
-              </div>
-            )}
-            {coming > 0 && (
-              <div>
-                <div className={styles.statNum}>{String(coming).padStart(2, "0")}</div>
-                <div className={styles.statLabel}>
-                  Coming
-                  <br />
-                  Soon
-                </div>
+
+            {heroVideo && (
+              <div className={styles.heroVideo}>
+                <p className={styles.heroVideoLabel}>Watch the Introduction</p>
+                <YouTubeFeatureVideo
+                  videoId={heroVideo.videoId}
+                  title={heroVideo.title}
+                  durationLabel={heroVideo.durationLabel}
+                  orientation="cropped-landscape"
+                  analyticsPlacement="series_hero"
+                />
               </div>
             )}
           </div>
@@ -167,6 +198,7 @@ function BookRow({
   const st = STATUS_MAP[book.status] ?? { label: book.status ?? "", cta: "Buy the Book", coming: false };
   const alt = book.cover_alt || `${book.title} cover`;
   const blurb = (book.blurb || book.card_description || "").trim();
+  const releaseTiming = st.coming ? formatReleaseTiming(book.release_date) : null;
 
   return (
     <article
@@ -200,12 +232,13 @@ function BookRow({
         </div>
         <h2 className={styles.bookTitle}>{book.title}</h2>
         {book.tagline && <p className={styles.bookTagline}>{book.tagline}</p>}
+        {releaseTiming && <p className={styles.releaseTiming}>{releaseTiming}</p>}
         <div className={styles.bookBlurb}>
           {blurb.split(/\n\n+/).map((p, i) => (
             <p key={i}>{p}</p>
           ))}
         </div>
-        {book.store_url && (
+        {book.store_url ? (
           <div>
             <a
               className={styles.bookCta}
@@ -222,10 +255,38 @@ function BookRow({
               <span className={styles.bookCtaArrow}>&rarr;</span>
             </a>
           </div>
-        )}
+        ) : st.coming ? (
+          <div className={styles.releaseSignup}>
+            <p>Join Mac&apos;s reader list for preorder news and release updates.</p>
+            <NewsletterForm buttonLabel="Get Release Updates" />
+          </div>
+        ) : null}
       </div>
     </article>
   );
+}
+
+function formatReleaseTiming(releaseDate?: string): string {
+  if (!releaseDate) return "Coming soon";
+
+  const target = new Date(releaseDate);
+  if (Number.isNaN(target.getTime())) return "Coming soon";
+
+  const now = new Date();
+  if (target.getTime() < now.getTime()) return "Coming soon";
+
+  const targetYear = target.getUTCFullYear();
+  const currentYear = now.getUTCFullYear();
+  const targetMonth = target.getUTCMonth();
+
+  if (targetYear === currentYear + 1 && targetMonth <= 2) return "Coming early next year";
+  if (targetYear === currentYear && targetMonth <= 2) return "Coming early this year";
+
+  return `Coming ${new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(target)}`;
 }
 
 function SeriesNotFound({ slug }: { slug: string }) {
@@ -235,14 +296,14 @@ function SeriesNotFound({ slug }: { slug: string }) {
         <div className={styles.crumbs}>
           <Link href="/">Home</Link>
           <span className={styles.sep}>/</span>
-          <Link href="/#series">Series</Link>
+          <Link href="/series">Series</Link>
         </div>
         <div className={styles.empty}>
           <h2>Series Not Found</h2>
           <p>
             We couldn&rsquo;t find a series with the slug <em>&ldquo;{slug}&rdquo;</em>.
           </p>
-          <Link href="/#series" className={styles.bookCta}>
+          <Link href="/series" className={styles.bookCta}>
             <span>Browse all series</span>
             <span className={styles.bookCtaArrow}>&rarr;</span>
           </Link>
@@ -263,7 +324,7 @@ function SeriesLoadError({ error }: { error: unknown }) {
         <div className={styles.crumbs}>
           <Link href="/">Home</Link>
           <span className={styles.sep}>/</span>
-          <Link href="/#series">Series</Link>
+          <Link href="/series">Series</Link>
         </div>
         <div className={styles.empty}>
           <h2>Couldn&rsquo;t Load Series</h2>

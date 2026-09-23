@@ -1,7 +1,16 @@
 import Link from "next/link";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import NewsletterForm from "@/components/NewsletterForm";
-import { getHeroBook, getNewsletterIncentive, getSeriesList, type SeriesDoc } from "@/lib/appwrite";
+import BookCoverImage from "@/components/BookCoverImage";
+import YouTubeFeatureVideo from "@/components/YouTubeFeatureVideo";
+import {
+  getHeroBook,
+  getNewsletterIncentive,
+  getSeriesCatalog,
+  type SeriesCatalogEntry,
+  type SeriesDoc,
+} from "@/lib/appwrite";
+import { placeholderCover } from "@/lib/placeholderCover";
 
 function escapeHtml(value: string): string {
   return value
@@ -20,7 +29,7 @@ function seriesCardNumber(doc: SeriesDoc, idx: number): string {
 }
 
 export default async function HomePage() {
-  const [heroBook, newsletterIncentive, seriesList] = await Promise.all([
+  const [heroBook, newsletterIncentive, seriesCatalog] = await Promise.all([
     getHeroBook().catch((e) => {
       console.warn("Could not load the hero book from Appwrite:", e.message);
       return null;
@@ -29,34 +38,31 @@ export default async function HomePage() {
       console.warn("Could not load the newsletter incentive from Appwrite:", e.message);
       return null;
     }),
-    getSeriesList().catch((e) => {
+    getSeriesCatalog().catch((e) => {
       console.warn("Could not load series from Appwrite:", e.message);
-      return [] as SeriesDoc[];
+      return [] as SeriesCatalogEntry[];
     }),
   ]);
+
+  const seriesCount = seriesCatalog.length;
+  const publishedBookCount = seriesCatalog.reduce(
+    (total, { books }) =>
+      total + books.filter(({ status }) => status === "published" || status === "best_seller").length,
+    0
+  );
 
   return (
     <>
       {/* HERO */}
       <section id="hero" data-screen-label="Home">
         <div className="hero-grid">
-          {/* LEFT — book cover */}
+          {/* LEFT — featured video */}
           <div className="book-stage fade-up" id="book">
             <span className="coming-tag">Coming Soon</span>
-            <a
-              href={heroBook?.storeUrl || "#book"}
-              className="book-frame"
-              data-analytics-event={heroBook?.storeUrl ? "retailer_link_click" : undefined}
-              data-analytics-item-id={heroBook?.id}
-              data-analytics-item-name={heroBook?.title}
-              data-analytics-link-text="Featured book cover"
-              data-analytics-placement="homepage_hero_cover"
-              data-analytics-content-format="book"
-              {...(heroBook?.storeUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            >
+            <div className="book-frame hero-video-frame">
               <div className="book-spine" />
-              <img id="hero-book-cover" src={heroBook?.src} alt={heroBook?.alt ?? ""} />
-            </a>
+              <YouTubeFeatureVideo />
+            </div>
           </div>
 
           {/* RIGHT — name, book meta, email */}
@@ -69,8 +75,8 @@ export default async function HomePage() {
               <span className="accent">WORDEN</span>
             </h1>
             <p className="hero-kicker">
-              Where justice still depends on <em>good people doing the right thing.</em> Three
-              great series from a master storyteller.
+              Where justice still depends on <em>good people doing the right thing.</em>{" "}
+              {seriesCount || 4} distinctive series from a master storyteller.
             </p>
 
             {/* Featured book strip */}
@@ -135,8 +141,8 @@ export default async function HomePage() {
               </h2>
             </div>
             <p className="series-intro">
-              Each series stands alone but share a single, uncompromising focus on good people,
-              doing the right thing under extraordinary circumstances.
+              Every Mac Worden series has its own dedicated home, complete reading order, and book
+              details. Start with the case that calls to you.
             </p>
           </div>
 
@@ -148,31 +154,55 @@ export default async function HomePage() {
             data-analytics-list-name="Homepage series"
             data-analytics-content-format="series"
           >
-            {seriesList.map((doc, idx) => (
-              <Link
-                key={doc.$id}
-                href={`/series/${doc.slug}`}
-                className={`series-card${idx === 0 ? " featured" : ""} reveal`}
-                data-analytics-item="true"
-                data-analytics-select-item="true"
-                data-analytics-item-id={doc.$id}
-                data-analytics-item-name={doc.series_heading || doc.name || doc.slug}
-                data-analytics-item-index={idx}
-                data-analytics-item-category="series"
-                data-analytics-list-id="homepage_series"
-                data-analytics-list-name="Homepage series"
-                data-analytics-content-format="series"
-              >
-                <div className="series-num">{seriesCardNumber(doc, idx)}</div>
-                {doc.card_tag && <span className="series-tag">{doc.card_tag}</span>}
-                <div className="series-name">{doc.series_heading ?? ""}</div>
-                <p className="series-desc">{doc.card_description ?? ""}</p>
-                <div className="series-meta">
-                  <span>{doc.card_meta ?? ""}</span>
-                  <span className="arrow">&rarr;</span>
-                </div>
-              </Link>
-            ))}
+            {seriesCatalog.map(({ series: doc, books }, idx) => {
+              const leadBook = books[0];
+              const cover = leadBook?.cover_thumb_url || leadBook?.cover_url;
+              const fallback = placeholderCover(
+                leadBook?.title || doc.series_heading || doc.name || "Mac Worden",
+                doc.series_heading || doc.name || "A Mac Worden Series"
+              );
+
+              return (
+                <Link
+                  key={doc.$id}
+                  href={`/series/${doc.slug}`}
+                  className={`series-card${idx === 0 ? " featured" : ""} reveal`}
+                  data-analytics-item="true"
+                  data-analytics-select-item="true"
+                  data-analytics-item-id={doc.$id}
+                  data-analytics-item-name={doc.series_heading || doc.name || doc.slug}
+                  data-analytics-item-index={idx}
+                  data-analytics-item-category="series"
+                  data-analytics-list-id="homepage_series"
+                  data-analytics-list-name="Homepage series"
+                  data-analytics-content-format="series"
+                >
+                  <div className="series-card-art">
+                    <BookCoverImage
+                      src={cover || fallback}
+                      fallbackSrc={fallback}
+                      alt={leadBook?.cover_alt || `${leadBook?.title || doc.series_heading} cover`}
+                    />
+                    <div className="series-num">{seriesCardNumber(doc, idx)}</div>
+                  </div>
+                  <div className="series-card-copy">
+                    {doc.card_tag && <span className="series-tag">{doc.card_tag}</span>}
+                    <div className="series-name">{doc.series_heading ?? doc.name ?? ""}</div>
+                    <p className="series-desc">{doc.card_description ?? doc.description ?? ""}</p>
+                    <div className="series-meta">
+                      <span>{doc.card_meta ?? `${books.length} ${books.length === 1 ? "book" : "books"}`}</span>
+                      <span className="arrow">&rarr;</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="series-all reveal">
+            <Link href="/series" className="series-all-link">
+              View All Series <span aria-hidden="true">&rarr;</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -207,21 +237,21 @@ export default async function HomePage() {
                   novels <em>Deputy in the Crosshairs</em> and <em>Manhunt at Sage Creek</em>.
                 </p>
                 <p>
-                  Three series. One author. Every story built on the spaces between what people
-                  say and what they actually did.
+                  {seriesCount || 4} series. One author. Every story built on the spaces between
+                  what people say and what they actually did.
                 </p>
               </div>
               <div className="about-stats">
                 <div>
-                  <div className="stat-num">3</div>
+                  <div className="stat-num">{seriesCount || 4}</div>
                   <div className="stat-label">
                     Series
                     <br />
-                    in Motion
+                    to Explore
                   </div>
                 </div>
                 <div>
-                  <div className="stat-num">3</div>
+                  <div className="stat-num">{publishedBookCount || 3}</div>
                   <div className="stat-label">
                     Novels
                     <br />

@@ -18,6 +18,23 @@ const nextConfig: NextConfig = {
         destination: "/privacy",
         permanent: true,
       },
+      {
+        source: "/Series.html",
+        has: [
+          {
+            type: "query",
+            key: "series",
+            value: "(?<series>.+)",
+          },
+        ],
+        destination: "/series/:series",
+        permanent: true,
+      },
+      {
+        source: "/Series.html",
+        destination: "/series",
+        permanent: true,
+      },
     ];
   },
 };

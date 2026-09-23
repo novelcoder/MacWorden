@@ -6,6 +6,7 @@ export const revalidate = 3600;
 
 const staticPages: MetadataRoute.Sitemap = [
   { url: SITE_URL },
+  { url: `${SITE_URL}/series` },
   { url: `${SITE_URL}/books` },
   { url: `${SITE_URL}/privacy` },
 ];

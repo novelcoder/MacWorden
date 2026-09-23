@@ -4,6 +4,9 @@ import { useEffect } from "react";
 
 export default function RevealOnScroll() {
   useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add("reveal-enabled");
+
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -18,7 +21,10 @@ export default function RevealOnScroll() {
 
     document.querySelectorAll(".reveal, .fade-up").forEach((el) => io.observe(el));
 
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      root.classList.remove("reveal-enabled");
+    };
   }, []);
 
   return null;
