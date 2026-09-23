@@ -27,11 +27,18 @@ export interface BookDoc extends Models.Document {
   blurb?: string;
   card_description?: string;
   cover_url?: string;
+  cover_thumb_url?: string;
   cover_alt?: string;
   status: "draft" | "coming_soon" | "published" | "best_seller";
   series_number?: number;
+  release_date?: string;
   store_url?: string;
   store_label?: string;
+}
+
+export interface SeriesCatalogEntry {
+  series: SeriesDoc;
+  books: BookDoc[];
 }
 
 function requiredEnv(name: string): string {
@@ -139,6 +146,30 @@ export async function getAllBooks(): Promise<BookDoc[]> {
     Query.limit(100),
   ]);
   return res.documents;
+}
+
+export async function getSeriesCatalog(): Promise<SeriesCatalogEntry[]> {
+  const [series, books] = await Promise.all([getSeriesList(), getAllBooks()]);
+  const booksBySeries = new Map<string, BookDoc[]>();
+
+  for (const book of books) {
+    const current = booksBySeries.get(book.series_id) ?? [];
+    current.push(book);
+    booksBySeries.set(book.series_id, current);
+  }
+
+  for (const groupedBooks of booksBySeries.values()) {
+    groupedBooks.sort((a, b) => {
+      const aNumber = typeof a.series_number === "number" ? a.series_number : Number.MAX_SAFE_INTEGER;
+      const bNumber = typeof b.series_number === "number" ? b.series_number : Number.MAX_SAFE_INTEGER;
+      return aNumber - bNumber || a.title.localeCompare(b.title);
+    });
+  }
+
+  return series.map((seriesDoc) => ({
+    series: seriesDoc,
+    books: booksBySeries.get(seriesDoc.$id) ?? [],
+  }));
 }
 
 export async function getSeriesById(seriesId: string): Promise<SeriesDoc | null> {
