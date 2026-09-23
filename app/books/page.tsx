@@ -3,9 +3,15 @@ import Link from "next/link";
 import styles from "./books.module.css";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import BookCoverImage from "@/components/BookCoverImage";
-import { getSeriesList, getBooksForSeries, type SeriesDoc, type BookDoc } from "@/lib/appwrite";
+import { getMacAttributionContext } from "@/lib/attribution";
+import {
+  ATTRIBUTION_QUERY_PARAM,
+  type AttributionContext,
+  withAttribution,
+} from "@/lib/attribution-routing";
+import { getSeriesCatalog, type SeriesDoc, type BookDoc } from "@/lib/appwrite";
+import { bookCanonicalPath } from "@/lib/catalog-routing";
 import { placeholderCover } from "@/lib/placeholderCover";
-import { slugifyTitle } from "@/lib/slugify";
 
 export const metadata: Metadata = { title: "The Books" };
 
@@ -19,18 +25,16 @@ function isAvailable(book: BookDoc): boolean {
   return book.status === "published" || book.status === "best_seller";
 }
 
-export default async function BooksPage() {
+export default async function BooksPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   let seriesWithBooks: { series: SeriesDoc; books: BookDoc[] }[] = [];
   let error: unknown = null;
 
   try {
-    const seriesList = await getSeriesList();
-    seriesWithBooks = await Promise.all(
-      seriesList.map(async (series) => ({
-        series,
-        books: await getBooksForSeries(series.$id),
-      }))
-    );
+    seriesWithBooks = await getSeriesCatalog();
   } catch (err) {
     error = err;
   }
@@ -38,6 +42,12 @@ export default async function BooksPage() {
   if (error) {
     return <BooksLoadError error={error} />;
   }
+
+  const query = await searchParams;
+  const attribution = await getMacAttributionContext(
+    query[ATTRIBUTION_QUERY_PARAM],
+    seriesWithBooks.flatMap(({ books }) => books)
+  );
 
   return (
     <>
@@ -51,7 +61,13 @@ export default async function BooksPage() {
 
       {seriesWithBooks.length ? (
         seriesWithBooks.map(({ series, books }, idx) => (
-          <SeriesSection key={series.$id} series={series} books={books} idx={idx} />
+          <SeriesSection
+            key={series.$id}
+            series={series}
+            books={books}
+            idx={idx}
+            attribution={attribution}
+          />
         ))
       ) : (
         <section className={styles.seriesSection}>
@@ -66,7 +82,17 @@ export default async function BooksPage() {
   );
 }
 
-function SeriesSection({ series, books, idx }: { series: SeriesDoc; books: BookDoc[]; idx: number }) {
+function SeriesSection({
+  series,
+  books,
+  idx,
+  attribution,
+}: {
+  series: SeriesDoc;
+  books: BookDoc[];
+  idx: number;
+  attribution: AttributionContext | null;
+}) {
   const heading = series.series_heading || series.name || series.slug;
   const number = String(series.display_order ?? idx + 1).padStart(2, "0");
   const available = books.some(isAvailable);
@@ -101,6 +127,7 @@ function SeriesSection({ series, books, idx }: { series: SeriesDoc; books: BookD
                 listId={listId}
                 listName={`${heading} books`}
                 index={bookIdx}
+                attribution={attribution}
               />
             ))}
           </div>
@@ -118,12 +145,14 @@ function BookCover({
   listId,
   listName,
   index,
+  attribution,
 }: {
   book: BookDoc;
   series: SeriesDoc;
   listId: string;
   listName: string;
   index: number;
+  attribution: AttributionContext | null;
 }) {
   const fallback = placeholderCover(book.title, series.name);
   const cover = book.cover_url && book.cover_url.length ? book.cover_url : fallback;
@@ -133,7 +162,10 @@ function BookCover({
 
   return (
     <Link
-      href={`/series/${series.slug}#book-${slugifyTitle(book.title)}`}
+      href={withAttribution(
+        bookCanonicalPath(book),
+        attribution?.sourceKey ?? null
+      )}
       className={styles.cover}
       data-analytics-item="true"
       data-analytics-select-item="true"

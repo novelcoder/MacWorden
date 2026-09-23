@@ -1,8 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import SnowOverlay from "@/components/SnowOverlay";
-import SiteNav from "@/components/SiteNav";
-import SiteFooter from "@/components/SiteFooter";
+import SiteNav, { SiteNavFallback } from "@/components/SiteNav";
+import SiteFooter, { SiteFooterFallback } from "@/components/SiteFooter";
 import { AnalyticsProvider } from "@/components/AnalyticsConsent";
 import { GOOGLE_ANALYTICS_ID } from "@/lib/analytics";
 
@@ -38,9 +39,13 @@ export default function RootLayout({
       <body>
         <AnalyticsProvider measurementId={GOOGLE_ANALYTICS_ID}>
           <SnowOverlay />
-          <SiteNav />
+          <Suspense fallback={<SiteNavFallback />}>
+            <SiteNav />
+          </Suspense>
           {children}
-          <SiteFooter />
+          <Suspense fallback={<SiteFooterFallback />}>
+            <SiteFooter />
+          </Suspense>
         </AnalyticsProvider>
       </body>
     </html>

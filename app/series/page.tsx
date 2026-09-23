@@ -3,7 +3,10 @@ import Link from "next/link";
 import styles from "./series-index.module.css";
 import BookCoverImage from "@/components/BookCoverImage";
 import RevealOnScroll from "@/components/RevealOnScroll";
+import { getMacAttributionContext } from "@/lib/attribution";
+import { ATTRIBUTION_QUERY_PARAM, withAttribution } from "@/lib/attribution-routing";
 import { getSeriesCatalog, type SeriesCatalogEntry } from "@/lib/appwrite";
+import { seriesCanonicalPath } from "@/lib/catalog-routing";
 import { placeholderCover } from "@/lib/placeholderCover";
 
 export const metadata: Metadata = {
@@ -12,7 +15,11 @@ export const metadata: Metadata = {
     "Explore every Mac Worden mystery and thriller series, with reading orders and complete book details.",
 };
 
-export default async function SeriesIndexPage() {
+export default async function SeriesIndexPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   let catalog: SeriesCatalogEntry[] = [];
   let error: unknown = null;
 
@@ -23,6 +30,14 @@ export default async function SeriesIndexPage() {
   }
 
   if (error) return <SeriesLoadError error={error} />;
+
+  const query = await searchParams;
+  const attribution = await getMacAttributionContext(
+    query[ATTRIBUTION_QUERY_PARAM],
+    catalog.flatMap(({ books }) => books)
+  );
+  const attributedPath = (path: string) =>
+    withAttribution(path, attribution?.sourceKey ?? null);
 
   const totalBooks = catalog.reduce((total, { books }) => total + books.length, 0);
   const availableBooks = catalog.reduce(
@@ -81,7 +96,7 @@ export default async function SeriesIndexPage() {
 
               return (
                 <Link
-                  href={`/series/${series.slug}`}
+                  href={attributedPath(seriesCanonicalPath(series))}
                   className={`${styles.card} reveal`}
                   key={series.$id}
                   data-analytics-item="true"

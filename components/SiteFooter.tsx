@@ -1,7 +1,13 @@
-import Link from "next/link";
-import { CookieSettingsLink } from "@/components/AnalyticsConsent";
+"use client";
 
-export default function SiteFooter() {
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { CookieSettingsLink } from "@/components/AnalyticsConsent";
+import { sourceKeyFromSearchParams, withAttribution } from "@/lib/attribution-routing";
+
+function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
+  const attributedPath = (path: string) => withAttribution(path, sourceKey);
+
   return (
     <footer>
       <div className="footer-grid">
@@ -12,7 +18,7 @@ export default function SiteFooter() {
         <ul className="footer-links">
           <li>
             <Link
-              href="/#signup"
+              href={attributedPath("/#signup")}
               data-analytics-event="reader_list_cta_click"
               data-analytics-placement="footer"
               data-analytics-content-format="reader_list"
@@ -21,10 +27,10 @@ export default function SiteFooter() {
             </Link>
           </li>
           <li>
-            <Link href="/series">Series</Link>
+            <Link href={attributedPath("/series")}>Series</Link>
           </li>
           <li>
-            <Link href="/#about">About</Link>
+            <Link href={attributedPath("/#about")}>About</Link>
           </li>
           <li>
             <Link href="/privacy">Privacy &amp; Cookies</Link>
@@ -37,4 +43,13 @@ export default function SiteFooter() {
       </div>
     </footer>
   );
+}
+
+export function SiteFooterFallback() {
+  return <SiteFooterView sourceKey={null} />;
+}
+
+export default function SiteFooter() {
+  const searchParams = useSearchParams();
+  return <SiteFooterView sourceKey={sourceKeyFromSearchParams(searchParams)} />;
 }
