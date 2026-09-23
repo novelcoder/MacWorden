@@ -138,6 +138,19 @@
   background: var(--ink-2);
 }
 
+.bookPage {
+  min-height: 100vh;
+  padding-top: 8rem;
+}
+
+.bookPage .crumbs {
+  margin-bottom: 1.5rem;
+}
+
+.bookPage .bookRow {
+  padding-top: 2.5rem;
+}
+
 .booksLabel {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 0.75rem;
@@ -361,6 +374,7 @@
   .heroGrid { grid-template-columns: 1fr; }
   .heroVideo { max-width: 620px; }
   .books { padding: 4rem 1.5rem 5rem; }
+  .bookPage { padding-top: 7rem; }
   .bookRow { grid-template-columns: 1fr; gap: 2rem; }
   .bookCoverWrap { max-width: 240px; }
 }

@@ -240,6 +240,7 @@ export function BookDetailRow({
   listName,
   seriesName,
   attribution,
+  context = "series",
 }: {
   book: BookDoc;
   idx: number;
@@ -247,6 +248,7 @@ export function BookDetailRow({
   listName: string;
   seriesName: string;
   attribution: AttributionContext | null;
+  context?: "series" | "book";
 }) {
   const fallback = placeholderCover(book.title, "A Mac Worden Novel");
   const cover = book.cover_url && book.cover_url.length ? book.cover_url : fallback;
@@ -254,6 +256,8 @@ export function BookDetailRow({
   const alt = book.cover_alt || `${book.title} cover`;
   const blurb = (book.blurb || book.card_description || "").trim();
   const releaseTiming = st.coming ? formatReleaseTiming(book.release_date) : null;
+  const isBookPage = context === "book";
+  const showReleaseTiming = releaseTiming && (!isBookPage || releaseTiming !== "Coming soon");
 
   return (
     <article
@@ -281,20 +285,34 @@ export function BookDetailRow({
 
       <div className={styles.bookInfo}>
         <div className={styles.bookNumber}>
-          <span>Book {book.series_number != null ? book.series_number : "—"}</span>
-          <span className={styles.bookNumberDot} />
-          <span className={styles.bookNumberStatus}>{st.label}</span>
+          <span>
+            {book.series_number != null
+              ? `Book ${book.series_number}${isBookPage ? ` in ${seriesName}` : ""}`
+              : isBookPage
+                ? `A ${seriesName} story`
+                : "Book —"}
+          </span>
+          {!isBookPage && (
+            <>
+              <span className={styles.bookNumberDot} />
+              <span className={styles.bookNumberStatus}>{st.label}</span>
+            </>
+          )}
         </div>
-        <h2 className={styles.bookTitle}>
-          <Link
-            className={styles.bookTitleLink}
-            href={withAttribution(bookCanonicalPath(book), attribution?.sourceKey ?? null)}
-          >
-            {book.title}
-          </Link>
-        </h2>
+        {isBookPage ? (
+          <h1 className={styles.bookTitle}>{book.title}</h1>
+        ) : (
+          <h2 className={styles.bookTitle}>
+            <Link
+              className={styles.bookTitleLink}
+              href={withAttribution(bookCanonicalPath(book), attribution?.sourceKey ?? null)}
+            >
+              {book.title}
+            </Link>
+          </h2>
+        )}
         {book.tagline && <p className={styles.bookTagline}>{book.tagline}</p>}
-        {releaseTiming && <p className={styles.releaseTiming}>{releaseTiming}</p>}
+        {showReleaseTiming && <p className={styles.releaseTiming}>{releaseTiming}</p>}
         <div className={styles.bookBlurb}>
           {blurb.split(/\n\n+/).map((p, i) => (
             <p key={i}>{p}</p>

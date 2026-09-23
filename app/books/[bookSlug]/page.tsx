@@ -102,8 +102,17 @@ export default async function BookPage({ params, searchParams }: BookPageProps) 
 
   return (
     <>
-      <section className={styles.seriesHeader} data-screen-label="Book Header">
-        <div className={styles.wrap}>
+      <section
+        className={`${styles.books} ${styles.bookPage}`}
+        data-screen-label="Book Details"
+      >
+        <div
+          className={styles.wrap}
+          data-analytics-view-list="true"
+          data-analytics-list-id={`book_${book.$id}`}
+          data-analytics-list-name={`${book.title} details`}
+          data-analytics-content-format="book"
+        >
           <div className={styles.crumbs}>
             <Link href={attributedPath("/")}>Home</Link>
             <span className={styles.sep}>/</span>
@@ -111,19 +120,6 @@ export default async function BookPage({ params, searchParams }: BookPageProps) 
             <span className={styles.sep}>/</span>
             <Link href={attributedPath(seriesCanonicalPath(series))}>{seriesName}</Link>
           </div>
-          <p className={styles.seriesEyebrow}>{seriesName}</p>
-          <h1 className={styles.seriesTitle}>{book.title}</h1>
-          <p className={styles.seriesIntro}>
-            {book.series_number != null
-              ? `Book ${book.series_number} in ${seriesName}`
-              : `A ${seriesName} story`}
-          </p>
-        </div>
-      </section>
-
-      <section className={styles.books} data-screen-label="Book Details">
-        <div className={styles.wrap}>
-          <p className={styles.booksLabel}>Book Details</p>
           <BookDetailRow
             book={book}
             idx={Math.max(bookIndex, 0)}
@@ -131,6 +127,7 @@ export default async function BookPage({ params, searchParams }: BookPageProps) 
             listName={`${book.title} details`}
             seriesName={seriesName}
             attribution={attribution}
+            context="book"
           />
         </div>
       </section>
