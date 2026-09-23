@@ -255,6 +255,12 @@
   margin-bottom: 0.9rem;
 }
 
+.bookTitleLink {
+  color: inherit;
+  text-decoration: none;
+}
+.bookTitleLink:hover { color: var(--gold); }
+
 .bookTagline {
   font-family: 'Cormorant Garamond', serif;
   font-style: italic;

@@ -1,5 +1,5 @@
 import "server-only";
-import { Client, Databases, Query, type Models } from "node-appwrite";
+import { Client, Databases, Query, TablesDB, type Models } from "node-appwrite";
 
 const SERIES_COLLECTION = "series";
 const BOOKS_COLLECTION = "books";
@@ -23,6 +23,7 @@ export interface SeriesDoc extends Models.Document {
 export interface BookDoc extends Models.Document {
   series_id: string;
   title: string;
+  slug: string;
   tagline?: string;
   blurb?: string;
   card_description?: string;
@@ -34,6 +35,7 @@ export interface BookDoc extends Models.Document {
   release_date?: string;
   store_url?: string;
   store_label?: string;
+  kindle_asin?: string;
 }
 
 export interface SeriesCatalogEntry {
@@ -49,20 +51,35 @@ function requiredEnv(name: string): string {
   return value;
 }
 
+let client: Client | null = null;
 let databases: Databases | null = null;
+let tablesDatabase: TablesDB | null = null;
 
-function getDatabases(): Databases {
-  if (!databases) {
-    const client = new Client()
+function getClient(): Client {
+  if (!client) {
+    client = new Client()
       .setEndpoint(requiredEnv("CMS_ENDPOINT"))
       .setProject(requiredEnv("CMS_PROJECT_ID"))
       .setKey(requiredEnv("CMS_API_KEY"));
-    databases = new Databases(client);
+  }
+  return client;
+}
+
+function getDatabases(): Databases {
+  if (!databases) {
+    databases = new Databases(getClient());
   }
   return databases;
 }
 
-function databaseId(): string {
+export function getTablesDatabase(): TablesDB {
+  if (!tablesDatabase) {
+    tablesDatabase = new TablesDB(getClient());
+  }
+  return tablesDatabase;
+}
+
+export function getCmsDatabaseId(): string {
   return requiredEnv("CMS_DATABASE_ID");
 }
 
@@ -71,7 +88,7 @@ function siteId(): string {
 }
 
 export async function getSiteSetting(key: string): Promise<string> {
-  const settings = await getDatabases().listDocuments(databaseId(), SETTINGS_COLLECTION, [
+  const settings = await getDatabases().listDocuments(getCmsDatabaseId(), SETTINGS_COLLECTION, [
     Query.equal("sites", siteId()),
     Query.equal("key", key),
     Query.limit(1),
@@ -93,7 +110,11 @@ export async function getHeroBook(): Promise<{
   storeUrl?: string;
 }> {
   const heroBookId = await getSiteSetting(HERO_BOOK_KEY);
-  const book = await getDatabases().getDocument<BookDoc>(databaseId(), BOOKS_COLLECTION, heroBookId);
+  const book = await getDatabases().getDocument<BookDoc>(
+    getCmsDatabaseId(),
+    BOOKS_COLLECTION,
+    heroBookId
+  );
 
   if (!book.cover_url) {
     throw new Error(`Book ${heroBookId} does not have a cover_url`);
@@ -113,7 +134,7 @@ export async function getNewsletterIncentive(): Promise<string> {
 }
 
 export async function getSeriesList(): Promise<SeriesDoc[]> {
-  const res = await getDatabases().listDocuments<SeriesDoc>(databaseId(), SERIES_COLLECTION, [
+  const res = await getDatabases().listDocuments<SeriesDoc>(getCmsDatabaseId(), SERIES_COLLECTION, [
     Query.equal("sites", siteId()),
     Query.orderAsc("display_order"),
     Query.limit(25),
@@ -122,7 +143,7 @@ export async function getSeriesList(): Promise<SeriesDoc[]> {
 }
 
 export async function getSeriesBySlug(slug: string): Promise<SeriesDoc | null> {
-  const res = await getDatabases().listDocuments<SeriesDoc>(databaseId(), SERIES_COLLECTION, [
+  const res = await getDatabases().listDocuments<SeriesDoc>(getCmsDatabaseId(), SERIES_COLLECTION, [
     Query.equal("slug", slug),
     Query.equal("sites", siteId()),
     Query.limit(1),
@@ -131,7 +152,7 @@ export async function getSeriesBySlug(slug: string): Promise<SeriesDoc | null> {
 }
 
 export async function getBooksForSeries(seriesId: string): Promise<BookDoc[]> {
-  const res = await getDatabases().listDocuments<BookDoc>(databaseId(), BOOKS_COLLECTION, [
+  const res = await getDatabases().listDocuments<BookDoc>(getCmsDatabaseId(), BOOKS_COLLECTION, [
     Query.equal("series_id", seriesId),
     Query.notEqual("status", "draft"),
     Query.orderAsc("series_number"),
@@ -141,7 +162,7 @@ export async function getBooksForSeries(seriesId: string): Promise<BookDoc[]> {
 }
 
 export async function getAllBooks(): Promise<BookDoc[]> {
-  const res = await getDatabases().listDocuments<BookDoc>(databaseId(), BOOKS_COLLECTION, [
+  const res = await getDatabases().listDocuments<BookDoc>(getCmsDatabaseId(), BOOKS_COLLECTION, [
     Query.notEqual("status", "draft"),
     Query.limit(100),
   ]);
@@ -174,7 +195,11 @@ export async function getSeriesCatalog(): Promise<SeriesCatalogEntry[]> {
 
 export async function getSeriesById(seriesId: string): Promise<SeriesDoc | null> {
   try {
-    return await getDatabases().getDocument<SeriesDoc>(databaseId(), SERIES_COLLECTION, seriesId);
+    return await getDatabases().getDocument<SeriesDoc>(
+      getCmsDatabaseId(),
+      SERIES_COLLECTION,
+      seriesId
+    );
   } catch {
     return null;
   }

@@ -17,7 +17,7 @@ export default function PrivacyPage() {
           <br />
           <em>&amp; Cookies</em>
         </h1>
-        <p className={styles.stamp}>Last updated · September 15, 2026</p>
+        <p className={styles.stamp}>Last updated · September 23, 2026</p>
 
         <p className={styles.lede}>
           You can browse this site without allowing analytics. If you join Mac&rsquo;s reader list,
@@ -94,11 +94,25 @@ export default function PrivacyPage() {
         </div>
 
         <div className={styles.section}>
-          <h2 data-num="05">Advertising features</h2>
+          <h2 data-num="05">Advertising and retailer measurement</h2>
           <p>
             Analytics advertising storage, advertising user data, and ad personalization remain
             denied even when analytics is allowed. Google Signals and advertising-personalization
             signals are also disabled.
+          </p>
+          <p>
+            Some paid links to this site include a limited first-party <strong>source_key</strong>
+            campaign marker. The site can carry a valid marker between relevant Mac Worden pages
+            and, only when you choose a retailer purchase or preorder button, select the matching
+            book-specific Amazon Attribution link. Merely landing on or browsing the site does not
+            contact an Amazon Attribution link.
+          </p>
+          <p>
+            The campaign marker is not a Google click identifier and does not contain an email
+            address. Google click identifiers, UTM values, and unrelated page parameters are not
+            appended to Amazon links. Amazon receives the normal request information only after
+            you choose the outbound link and reports aggregated retailer activity through Amazon
+            Attribution. This routing works independently of the optional Google Analytics choice.
           </p>
         </div>
 

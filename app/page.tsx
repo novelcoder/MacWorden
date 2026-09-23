@@ -3,6 +3,8 @@ import RevealOnScroll from "@/components/RevealOnScroll";
 import NewsletterForm from "@/components/NewsletterForm";
 import BookCoverImage from "@/components/BookCoverImage";
 import YouTubeFeatureVideo from "@/components/YouTubeFeatureVideo";
+import { getMacAttributionContext, purchaseUrlForBook } from "@/lib/attribution";
+import { ATTRIBUTION_QUERY_PARAM, withAttribution } from "@/lib/attribution-routing";
 import {
   getHeroBook,
   getNewsletterIncentive,
@@ -11,6 +13,7 @@ import {
   type SeriesDoc,
 } from "@/lib/appwrite";
 import { placeholderCover } from "@/lib/placeholderCover";
+import { seriesCanonicalPath } from "@/lib/catalog-routing";
 
 function escapeHtml(value: string): string {
   return value
@@ -28,7 +31,11 @@ function seriesCardNumber(doc: SeriesDoc, idx: number): string {
   return String(doc.display_order ?? idx + 1).padStart(2, "0");
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
   const [heroBook, newsletterIncentive, seriesCatalog] = await Promise.all([
     getHeroBook().catch((e) => {
       console.warn("Could not load the hero book from Appwrite:", e.message);
@@ -43,6 +50,20 @@ export default async function HomePage() {
       return [] as SeriesCatalogEntry[];
     }),
   ]);
+  const query = await searchParams;
+  const catalogBooks = seriesCatalog.flatMap(({ books }) => books);
+  const attribution = await getMacAttributionContext(
+    query[ATTRIBUTION_QUERY_PARAM],
+    catalogBooks
+  );
+  const attributedPath = (path: string) =>
+    withAttribution(path, attribution?.sourceKey ?? null);
+  const heroCatalogBook = heroBook
+    ? catalogBooks.find((book) => book.$id === heroBook.id)
+    : undefined;
+  const heroPurchaseUrl = heroCatalogBook
+    ? purchaseUrlForBook(heroCatalogBook, attribution)
+    : heroBook?.storeUrl;
 
   const seriesCount = seriesCatalog.length;
   const publishedBookCount = seriesCatalog.reduce(
@@ -87,14 +108,14 @@ export default async function HomePage() {
                 <span className="book-meta-series">A Jack and Coke Mystery</span>
               </div>
               <a
-                href={heroBook?.storeUrl || "#book"}
+                href={heroPurchaseUrl || "#book"}
                 className="book-meta-cta"
-                data-analytics-event={heroBook?.storeUrl ? "retailer_link_click" : undefined}
+                data-analytics-event={heroPurchaseUrl ? "retailer_link_click" : undefined}
                 data-analytics-item-id={heroBook?.id}
                 data-analytics-item-name={heroBook?.title}
                 data-analytics-placement="homepage_hero_details"
                 data-analytics-content-format="book"
-                {...(heroBook?.storeUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                {...(heroPurchaseUrl ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               >
                 Read the Story
               </a>
@@ -165,7 +186,7 @@ export default async function HomePage() {
               return (
                 <Link
                   key={doc.$id}
-                  href={`/series/${doc.slug}`}
+                  href={attributedPath(seriesCanonicalPath(doc))}
                   className={`series-card${idx === 0 ? " featured" : ""} reveal`}
                   data-analytics-item="true"
                   data-analytics-select-item="true"
@@ -200,7 +221,7 @@ export default async function HomePage() {
           </div>
 
           <div className="series-all reveal">
-            <Link href="/series" className="series-all-link">
+            <Link href={attributedPath("/series")} className="series-all-link">
               View All Series <span aria-hidden="true">&rarr;</span>
             </Link>
           </div>

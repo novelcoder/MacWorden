@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { getSeriesList } from "@/lib/appwrite";
+import { getSeriesCatalog } from "@/lib/appwrite";
+import { bookCanonicalPath, seriesCanonicalPath } from "@/lib/catalog-routing";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -13,15 +14,19 @@ const staticPages: MetadataRoute.Sitemap = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    const series = await getSeriesList();
-    const seriesPages: MetadataRoute.Sitemap = series
-      .filter(({ slug }) => Boolean(slug))
-      .map(({ slug, $updatedAt }) => ({
-        url: `${SITE_URL}/series/${encodeURIComponent(slug)}`,
-        lastModified: $updatedAt,
-      }));
+    const catalog = await getSeriesCatalog();
+    const seriesPages: MetadataRoute.Sitemap = catalog.map(({ series }) => ({
+      url: `${SITE_URL}${seriesCanonicalPath(series)}`,
+      lastModified: series.$updatedAt,
+    }));
+    const bookPages: MetadataRoute.Sitemap = catalog.flatMap(({ books }) =>
+      books.map((book) => ({
+        url: `${SITE_URL}${bookCanonicalPath(book)}`,
+        lastModified: book.$updatedAt,
+      }))
+    );
 
-    return [...staticPages, ...seriesPages];
+    return [...staticPages, ...seriesPages, ...bookPages];
   } catch (error) {
     console.warn("Could not load series for sitemap:", error);
     return staticPages;
