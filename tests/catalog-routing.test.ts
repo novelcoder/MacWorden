@@ -10,10 +10,10 @@ import {
   seriesMatchesRouteAlias,
 } from "../lib/catalog-routing.ts";
 
-const jackAndCoke = {
+const jackAndCocoaWithHistoricalSlug = {
   slug: "jack-and-coke",
-  name: "A Jack and Coke Mystery",
-  series_heading: "Jack and Coke Mysteries",
+  name: "A Jack and Cocoa Mystery",
+  series_heading: "Jack and Cocoa Mysteries",
 };
 
 void test("normalizes route aliases without regard to case, spaces, or hyphens", () => {
@@ -23,23 +23,30 @@ void test("normalizes route aliases without regard to case, spaces, or hyphens",
   assert.equal(normalizeRouteAlias("bad%ZZalias"), "");
 });
 
-void test("matches canonical slugs and reader-facing series names flexibly", () => {
+void test("matches the new series name and historical Jack and Coke aliases", () => {
   for (const alias of [
     "jack-and-coke",
     "JackAndCoke",
     "JACK-AND-COKE",
     "Jack and Coke Mysteries",
     "AJackAndCokeMystery",
+    "jack-and-cocoa",
+    "JackAndCocoa",
+    "Jack and Cocoa Mysteries",
+    "AJackAndCocoaMystery",
   ]) {
-    assert.equal(seriesMatchesRouteAlias(jackAndCoke, alias), true, alias);
+    assert.equal(seriesMatchesRouteAlias(jackAndCocoaWithHistoricalSlug, alias), true, alias);
   }
 
-  assert.equal(seriesMatchesRouteAlias(jackAndCoke, "StrayEvidence"), false);
+  assert.equal(
+    seriesMatchesRouteAlias(jackAndCocoaWithHistoricalSlug, "StrayEvidence"),
+    false
+  );
 });
 
-void test("builds Jamie-style root series paths from stored slugs", () => {
-  assert.equal(seriesCanonicalSegment(jackAndCoke), "JackAndCoke");
-  assert.equal(seriesCanonicalPath(jackAndCoke), "/JackAndCoke");
+void test("uses the new canonical path despite the stable historical slug", () => {
+  assert.equal(seriesCanonicalSegment(jackAndCocoaWithHistoricalSlug), "JackAndCocoa");
+  assert.equal(seriesCanonicalPath(jackAndCocoaWithHistoricalSlug), "/JackAndCocoa");
   assert.equal(
     seriesCanonicalPath({ slug: "bitter-lake-mysteries" }),
     "/BitterLakeMysteries"
@@ -51,6 +58,6 @@ void test("matches flexible book aliases and keeps books in their namespace", ()
 
   assert.equal(bookMatchesRouteAlias(book, "StrayEvidence"), true);
   assert.equal(bookMatchesRouteAlias(book, "STRAY-EVIDENCE"), true);
-  assert.equal(bookMatchesRouteAlias(book, "JackAndCoke"), false);
+  assert.equal(bookMatchesRouteAlias(book, "JackAndCocoa"), false);
   assert.equal(bookCanonicalPath(book), "/books/stray-evidence");
 });
