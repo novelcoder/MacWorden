@@ -83,8 +83,8 @@ void test("accepts one exact conservative source key and rejects malformed or du
 
 void test("propagates only source_key across clean internal paths", () => {
   assert.equal(
-    withAttribution("/JackAndCoke", sourceKey),
-    `/JackAndCoke?source_key=${sourceKey}`
+    withAttribution("/JackAndCocoa", sourceKey),
+    `/JackAndCocoa?source_key=${sourceKey}`
   );
   assert.equal(
     withAttribution("/books/stray-evidence#purchase", sourceKey),

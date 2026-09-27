@@ -105,7 +105,7 @@ export default async function HomePage({
               <div className="book-meta-text">
                 <span className="book-meta-eyebrow">New Release · Book 1</span>
                 <span className="book-meta-title">STRAY EVIDENCE</span>
-                <span className="book-meta-series">A Jack and Coke Mystery</span>
+                <span className="book-meta-series">A Jack and Cocoa Mystery</span>
               </div>
               <a
                 href={heroPurchaseUrl || "#book"}
@@ -252,7 +252,7 @@ export default async function HomePage({
                   the kind of plots that move quiet, then all at once.
                 </p>
                 <p>
-                  <em>Stray Evidence</em> &mdash; the first in the Jack and Coke Mystery series
+                  <em>Stray Evidence</em> &mdash; the first in the Jack and Cocoa Mysteries
                   &mdash; joins a growing shelf that already includes{" "}
                   <em>When Justice Calls</em> (A Henry Biggston Thriller) and the Colby Watts
                   novels <em>Deputy in the Crosshairs</em> and <em>Manhunt at Sage Creek</em>.

@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+import { siteRedirects } from "./lib/site-redirects.ts";
 
 const nextConfig: NextConfig = {
   output: "standalone",
@@ -7,35 +8,7 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname),
   },
   async redirects() {
-    return [
-      {
-        source: "/index.html",
-        destination: "/",
-        permanent: true,
-      },
-      {
-        source: "/privacy.html",
-        destination: "/privacy",
-        permanent: true,
-      },
-      {
-        source: "/Series.html",
-        has: [
-          {
-            type: "query",
-            key: "series",
-            value: "(?<series>.+)",
-          },
-        ],
-        destination: "/series/:series",
-        permanent: true,
-      },
-      {
-        source: "/Series.html",
-        destination: "/series",
-        permanent: true,
-      },
-    ];
+    return siteRedirects;
   },
 };
 
