@@ -1,58 +1,49 @@
-# Mac Worden newsletter attribution
+# Mac Worden newsletter signup events
 
-Newsletter attribution is deliberately scoped to Mac Worden. The existing
-`MAILERLITE_GROUP_ID` remains the delivery, resubscribe, and autoresponder group;
-this implementation does not create or reuse a Jamie McFarlane group.
+When MailerLite accepts a reader-list signup, the `MacWordenMailerLite` Appwrite function
+writes one anonymous row to the shared `newsletter_signup_events` table. That is the whole
+feature: a count of accepted signup requests by site, day, source and page. It does not
+distinguish new, existing or resubscribed readers, and it adds nothing to MailerLite.
 
-## Captured context
+## Row
 
-The public URL accepts a first-party `source_key`. Its format matches the shared
-convention used by the Jamie site: 1–64 lowercase ASCII letters, digits, and
-underscores, beginning and ending with a letter or digit. A syntactically valid
-key is not trusted by itself: the Appwrite function accepts it only when it is
-listed in `MAC_NEWSLETTER_ALLOWED_SOURCE_KEYS`.
+| column        | value                                                              |
+| ------------- | ------------------------------------------------------------------ |
+| `site_key`    | always `mac_worden` (Jamie McFarlane's site writes `jamie_mcfarlane`) |
+| `event_date`  | `YYYY-MM-DD` in `America/Chicago`                                  |
+| `source_type` | `google_ads` or `website_unattributed`                             |
+| `source_key`  | only for `google_ads`: the exact validated key                     |
+| `signup_path` | the local pathname of the form, or `/unknown`                      |
 
-The browser keeps only a syntactically valid source key and the last Mac series
-slug visited in tab-scoped session storage. At form submission it sends those
-values plus the normalized form pathname. It does not collect or send `gclid`,
-`gbraid`, `wbraid`, a tracking template, or any other query parameter.
+The row never contains the email address, subscriber ID, name, IP address, click IDs,
+UTM parameters, full URLs or MailerLite response data. The function never logs the email.
 
-The Appwrite function independently validates all three values. Series values
-must be listed in `MAC_NEWSLETTER_ALLOWED_SERIES_KEYS`; paths must be local,
-lowercase paths made only of URL-safe slug segments. Invalid and non-allowlisted
-values are discarded without preventing an otherwise valid organic signup.
+`website_unattributed` is not "organic": it also covers direct, referral and untagged
+paid traffic.
 
-## Repeated-subscriber behavior
+## Source attribution
 
-The six fields retain both views of acquisition:
+1. On page load the site keeps a single, syntactically valid Mac `source_key` (it must
+   contain the `mw` segment) in tab-scoped `sessionStorage`, so it survives navigation.
+2. The form posts `{ email, source_key?, signup_path }` to the function.
+3. The function reports `google_ads` only when the key starts with `gads_`, contains the
+   `mw` segment and has at least one **enabled** row in `attribution_routes`. Anything else
+   (missing, malformed, duplicated, spoofed, disabled or non-Google) is
+   `website_unattributed` with no `source_key`.
 
-- First-touch fields are written only when none of the subscriber's first-touch
-  fields already has a value. Existing first-touch data is never overwritten.
-- Latest-touch fields are updated on each signup when the corresponding value is
-  present and valid.
-- An organic signup has no source key. It can still record a path and series, but
-  it does not erase a previously recorded attributed source.
-- For subscribers who predate this feature, “first” means the first signup
-  observed after attribution is enabled, not necessarily their original signup.
-- If the pre-upsert subscriber lookup fails, signup continues with latest-touch
-  fields only so a transient lookup failure cannot overwrite first touch or block
-  the reader-list request.
+## Order and failure handling
 
-## MailerLite prerequisite
+- MailerLite is called first. If it rejects the request, no row is written and the reader
+  sees the error.
+- If the route lookup or row write fails after MailerLite succeeded, the function logs a
+  generic "Newsletter signup event was not recorded" message and still returns success.
 
-Before enabling attribution in production, create these six **text** fields in
-the Mac Worden MailerLite account:
+## Appwrite setup
 
-1. `Mac Signup Source First`
-2. `Mac Signup Series First`
-3. `Mac Signup Path First`
-4. `Mac Signup Source Latest`
-5. `Mac Signup Series Latest`
-6. `Mac Signup Path Latest`
+- The function's execution scopes are `rows.read` and `rows.write`; it uses the dynamic
+  per-execution key, so no API key variable is needed.
+- The function needs only `MAILERLITE_API_KEY` and `MAILERLITE_GROUP_ID`.
+- The function deploys from `main` (`/appwrite-function`).
 
-Do not assume MailerLite's generated keys. Read the actual keys back from the
-MailerLite field list and assign them to the six
-`MAILERLITE_MAC_SIGNUP_*_FIELD_KEY` function variables documented in
-`appwrite-function/.env.example`. Configure both allowlists at the same time.
-Attribution enrichment stays off unless every field key is present and valid;
-ordinary email subscription through the existing Mac group continues.
+Native Meta Lead Ads do not pass through this site and are out of scope; a future
+integration could write `source_type: meta_lead_ad` with `site_key: mac_worden`.

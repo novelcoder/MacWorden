@@ -17,7 +17,7 @@ export default function PrivacyPage() {
           <br />
           <em>&amp; Cookies</em>
         </h1>
-        <p className={styles.stamp}>Last updated · September 23, 2026</p>
+        <p className={styles.stamp}>Last updated · September 29, 2026</p>
 
         <p className={styles.lede}>
           You can browse this site without allowing analytics. If you join Mac&rsquo;s reader list,
@@ -37,19 +37,16 @@ export default function PrivacyPage() {
         <div className={styles.section}>
           <h2 data-num="02">Reader list</h2>
           <p>
-            The reader-list form collects the email address you choose to submit. It can also
-            retain a limited first-party signup context: an approved campaign source key, the Mac
-            Worden series you most recently viewed, and the site path where you submitted the form.
-            This context is used to understand how readers found the list and which books interest
-            them. It does not include Google click IDs, advertising tracking templates, or unrelated
-            URL parameters.
+            The reader-list form collects the email address you choose to submit. It is used to
+            deliver the offered ebook and send Mac Worden book news. The form is handled through
+            the site&rsquo;s service providers, and every mailing includes an unsubscribe option.
+            The address is not sent to Google Analytics.
           </p>
           <p>
-            The form is handled through the site&rsquo;s service providers and is stored with the
-            Mac Worden mailing-list record. It is used to deliver the offered ebook and send Mac
-            Worden book news, and every mailing includes an unsubscribe option. If you allow
-            optional analytics, a successful submission can be recorded as a non-personal event.
-            The email address and signup context are not sent to Google Analytics.
+            When our mailing-list provider accepts a signup, we also record a separate measurement
+            event: this site, the date, the page where you signed up, and either a recognized Google
+            Ads campaign or otherwise unattributed website traffic. The event does not include your
+            email address or any other information that identifies you.
           </p>
         </div>
 
@@ -86,10 +83,10 @@ export default function PrivacyPage() {
           <h2 data-num="04">Cookies</h2>
           <ul className={styles.list}>
             <li>
-              <strong>macworden_newsletter_attribution_v1</strong> is tab-scoped session storage,
-              not a cookie. When present, it holds only a format-checked first-party source key and
-              Mac Worden series slug long enough to carry that context to the reader-list form. The
-              browser removes it when the tab session ends.
+              <strong>macworden_newsletter_source_v1</strong> is tab-scoped session storage, not
+              a cookie. When you arrive from a Mac Worden ad link, it holds only that link&rsquo;s
+              campaign key so a signup later in the same tab can be attributed to it. The browser
+              removes it when the tab session ends.
             </li>
             <li>
               <strong>macworden_analytics_consent</strong> stores only whether you allowed or
