@@ -1,125 +1,232 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import handler from '../src/index.js';
+import { createHandler } from '../src/index.js';
+import {
+  buildSignupEvent,
+  chicagoDate,
+  createAppwriteTables,
+  normalizeSignupPath,
+  parseMacGoogleSourceKey,
+} from '../src/signupEvent.js';
 
-const attributionEnvironment = {
+const ENABLED_KEY = 'gads_mw_jc_b1_2026_09';
+const DISABLED_KEY = 'gads_mw_preorders_2026_09';
+
+const env = {
   MAILERLITE_API_KEY: 'test-api-key',
   MAILERLITE_GROUP_ID: '12345',
-  MAC_NEWSLETTER_ALLOWED_SOURCE_KEYS: 'gads_jc_b1_2026_09',
-  MAC_NEWSLETTER_ALLOWED_SERIES_KEYS: 'jack-and-coke',
-  MAILERLITE_MAC_SIGNUP_SOURCE_FIRST_FIELD_KEY: 'mac_signup_source_first',
-  MAILERLITE_MAC_SIGNUP_SERIES_FIRST_FIELD_KEY: 'mac_signup_series_first',
-  MAILERLITE_MAC_SIGNUP_PATH_FIRST_FIELD_KEY: 'mac_signup_path_first',
-  MAILERLITE_MAC_SIGNUP_SOURCE_LATEST_FIELD_KEY: 'mac_signup_source_latest',
-  MAILERLITE_MAC_SIGNUP_SERIES_LATEST_FIELD_KEY: 'mac_signup_series_latest',
-  MAILERLITE_MAC_SIGNUP_PATH_LATEST_FIELD_KEY: 'mac_signup_path_latest',
+  APPWRITE_FUNCTION_API_ENDPOINT: 'https://appwrite.test/v1',
+  APPWRITE_FUNCTION_PROJECT_ID: 'project-id',
 };
 
-function mockResponse() {
+const mockRes = { json: (body, status, headers) => ({ body, status, headers }) };
+
+function fakeTables({ enabled = [ENABLED_KEY], failWrite = false, failLookup = false } = {}) {
+  const events = [];
+  const lookups = [];
   return {
-    json(body, status, headers) {
-      return { body, status, headers };
-    },
+    events,
+    lookups,
+    factory: () => ({
+      async hasEnabledRoute(key) {
+        lookups.push(key);
+        if (failLookup) throw new Error('route lookup status 500');
+        return enabled.includes(key);
+      },
+      async createEvent(data) {
+        if (failWrite) throw new Error('event write status 500');
+        events.push(data);
+      },
+    }),
   };
 }
 
-test('handler sends only validated attribution through the MailerLite group upsert', async () => {
+async function run(body, { mailerLiteStatus = 200, tables = fakeTables() } = {}) {
   const originalFetch = globalThis.fetch;
-  const originalEnvironment = Object.fromEntries(
-    Object.keys(attributionEnvironment).map((key) => [key, process.env[key]])
-  );
-  const calls = [];
-
-  Object.assign(process.env, attributionEnvironment);
+  const saved = Object.fromEntries(Object.keys(env).map((k) => [k, process.env[k]]));
+  Object.assign(process.env, env);
+  const mailerLiteCalls = [];
   const logs = [];
-  const errors = [];
-  globalThis.fetch = async (url, options = {}) => {
-    calls.push({ url: String(url), options });
-    if (options.method !== 'POST') return new Response('', { status: 404 });
-    return new Response('{}', { status: 200 });
+  globalThis.fetch = async (url, options) => {
+    mailerLiteCalls.push({ url: String(url), body: JSON.parse(options.body) });
+    return new Response('{}', { status: mailerLiteStatus });
   };
-
   try {
-    const result = await handler({
-      req: {
-        method: 'POST',
-        body: JSON.stringify({
-          email: 'reader@example.com',
-          attribution: {
-            sourceKey: 'gads_jc_b1_2026_09',
-            series: 'jack-and-coke',
-            path: '/',
-            gclid: 'raw-click-id',
-            wbraid: 'raw-braid-id',
-          },
-        }),
-      },
-      res: mockResponse(),
-      log(message) {
-        logs.push(message);
-      },
-      error(message) {
-        errors.push(message);
-      },
+    const result = await createHandler({ createTables: tables.factory })({
+      req: { method: 'POST', headers: { 'x-appwrite-key': 'dynamic-key' }, body: JSON.stringify(body) },
+      res: mockRes,
+      log: (m) => logs.push(m),
+      error: (m) => logs.push(m),
     });
-
-    assert.equal(result.status, 200);
-    assert.equal(calls.length, 2);
-    assert.match(calls[0].url, /\/subscribers\/reader%40example\.com$/);
-    assert.match(calls[1].url, /\/groups\/12345\/subscribers$/);
-
-    const payload = JSON.parse(calls[1].options.body);
-    assert.equal(payload.fields.mac_signup_source_first, 'gads_jc_b1_2026_09');
-    assert.equal(payload.fields.mac_signup_series_latest, 'jack-and-coke');
-    assert.equal(JSON.stringify(payload).includes('gclid'), false);
-    assert.equal(JSON.stringify(payload).includes('wbraid'), false);
-    assert.equal(JSON.stringify({ logs, errors }).includes('reader@example.com'), false);
+    return { result, mailerLiteCalls, logs, events: tables.events, lookups: tables.lookups };
   } finally {
     globalThis.fetch = originalFetch;
-    for (const [key, value] of Object.entries(originalEnvironment)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
     }
+  }
+}
+
+test('a valid enabled Mac Google source becomes google_ads with the exact key', async () => {
+  const { result, events } = await run({
+    email: 'reader@example.com',
+    source_key: ENABLED_KEY,
+    signup_path: '/series/jack-and-cocoa/',
+  });
+  assert.equal(result.status, 200);
+  assert.equal(result.body.success, true);
+  assert.equal(events.length, 1);
+  assert.deepEqual(Object.keys(events[0]).sort(), [
+    'event_date', 'signup_path', 'site_key', 'source_key', 'source_type',
+  ]);
+  assert.equal(events[0].site_key, 'mac_worden');
+  assert.equal(events[0].source_type, 'google_ads');
+  assert.equal(events[0].source_key, ENABLED_KEY);
+  assert.equal(events[0].signup_path, '/series/jack-and-cocoa');
+  assert.match(events[0].event_date, /^\d{4}-\d{2}-\d{2}$/);
+});
+
+for (const [label, sourceKey] of [
+  ['absent', undefined],
+  ['malformed', 'GADS_MW_BAD!'],
+  ['duplicate (array)', [ENABLED_KEY, ENABLED_KEY]],
+  ['spoofed (no route)', 'gads_mw_made_up_2026_09'],
+  ['disabled', DISABLED_KEY],
+  ['non-Google', 'meta_mw_jc_b1_2026_09'],
+  ['other brand', 'gads_sm_b1_2026_09'],
+]) {
+  test(`${label} source becomes website_unattributed without a source key`, async () => {
+    const { events } = await run({ email: 'reader@example.com', source_key: sourceKey, signup_path: '/' });
+    assert.equal(events.length, 1);
+    assert.equal(events[0].source_type, 'website_unattributed');
+    assert.equal('source_key' in events[0], false);
+  });
+}
+
+test('only syntactically valid Mac Google keys are looked up', async () => {
+  const { lookups } = await run({ email: 'reader@example.com', source_key: 'gads_sm_b1_2026_09' });
+  assert.deepEqual(lookups, []);
+});
+
+test('a MailerLite failure creates no event and reports failure', async () => {
+  const { result, events } = await run(
+    { email: 'reader@example.com', source_key: ENABLED_KEY, signup_path: '/' },
+    { mailerLiteStatus: 500 }
+  );
+  assert.equal(result.status, 502);
+  assert.equal(events.length, 0);
+});
+
+test('MailerLite receives only the email with resubscribe and autoresponders', async () => {
+  const { mailerLiteCalls } = await run({
+    email: ' reader@example.com ',
+    source_key: ENABLED_KEY,
+    signup_path: '/',
+    gclid: 'raw-click-id',
+  });
+  assert.equal(mailerLiteCalls.length, 1);
+  assert.match(mailerLiteCalls[0].url, /\/groups\/12345\/subscribers$/);
+  assert.deepEqual(mailerLiteCalls[0].body, {
+    email: 'reader@example.com',
+    resubscribe: true,
+    autoresponders: true,
+  });
+});
+
+test('an event write failure still returns success and logs no PII', async () => {
+  const { result, logs } = await run(
+    { email: 'reader@example.com', source_key: ENABLED_KEY, signup_path: '/' },
+    { tables: fakeTables({ failWrite: true }) }
+  );
+  assert.equal(result.status, 200);
+  assert.equal(result.body.success, true);
+  assert.ok(logs.some((m) => m.startsWith('Newsletter signup event was not recorded')));
+  assert.equal(JSON.stringify(logs).includes('reader@example.com'), false);
+});
+
+test('a route lookup failure still returns success', async () => {
+  const { result, events } = await run(
+    { email: 'reader@example.com', source_key: ENABLED_KEY },
+    { tables: fakeTables({ failLookup: true }) }
+  );
+  assert.equal(result.status, 200);
+  assert.equal(events.length, 0);
+});
+
+test('event payload and logs never contain the email or click identifiers', async () => {
+  const { events, logs } = await run({
+    email: 'reader@example.com',
+    source_key: ENABLED_KEY,
+    signup_path: '/?email=reader@example.com',
+    gclid: 'raw-click-id',
+  });
+  const serialized = JSON.stringify({ events, logs });
+  assert.equal(serialized.includes('reader@example.com'), false);
+  assert.equal(serialized.includes('raw-click-id'), false);
+  assert.equal(events[0].signup_path, '/unknown');
+});
+
+test('invalid email is rejected before MailerLite or Appwrite', async () => {
+  const { result, mailerLiteCalls, events } = await run({ email: 'not-an-email' });
+  assert.equal(result.status, 400);
+  assert.equal(mailerLiteCalls.length, 0);
+  assert.equal(events.length, 0);
+});
+
+test('only canonical local pathnames are retained', () => {
+  assert.equal(normalizeSignupPath('/'), '/');
+  assert.equal(normalizeSignupPath('/books/stray-evidence/'), '/books/stray-evidence');
+  for (const bad of [
+    'https://evil.example/', '//evil.example', '/Books', '/a?b=c', '/a#b', '/a/../b', '', null, 42,
+    `/${'a'.repeat(300)}`,
+  ]) {
+    assert.equal(normalizeSignupPath(bad), '/unknown', String(bad));
   }
 });
 
-test('handler does not persist subscriber details from a MailerLite failure in logs', async () => {
-  const originalFetch = globalThis.fetch;
-  const originalEnvironment = Object.fromEntries(
-    Object.keys(attributionEnvironment).map((key) => [key, process.env[key]])
-  );
-  const logs = [];
-  const errors = [];
+test('Mac Google key parsing requires gads_ prefix and mw brand segment', () => {
+  assert.equal(parseMacGoogleSourceKey(ENABLED_KEY), ENABLED_KEY);
+  assert.equal(parseMacGoogleSourceKey('gads_sm_b1_2026_09'), null);
+  assert.equal(parseMacGoogleSourceKey('mw_gads_2026'), null);
+  assert.equal(parseMacGoogleSourceKey('gads_mw_'), null);
+});
 
-  Object.assign(process.env, attributionEnvironment);
-  globalThis.fetch = async (_url, options = {}) => {
-    if (options.method !== 'POST') return new Response('', { status: 404 });
-    return new Response('{"message":"reader@example.com already exists"}', { status: 422 });
-  };
+test('event dates align to America/Chicago', () => {
+  // 03:00 UTC on Sept 30 is still Sept 29 in Chicago.
+  assert.equal(chicagoDate(new Date('2026-09-30T03:00:00Z')), '2026-09-29');
+  assert.equal(chicagoDate(new Date('2026-09-30T06:00:00Z')), '2026-09-30');
+});
 
-  try {
-    const result = await handler({
-      req: {
-        method: 'POST',
-        body: JSON.stringify({ email: 'reader@example.com' }),
-      },
-      res: mockResponse(),
-      log(message) {
-        logs.push(message);
-      },
-      error(message) {
-        errors.push(message);
-      },
-    });
+test('Mac and Jamie unattributed events stay distinguishable by site_key', async () => {
+  const event = await buildSignupEvent({ signupPath: '/', hasEnabledRoute: async () => false });
+  assert.equal(event.site_key, 'mac_worden');
+  assert.notEqual(event.site_key, 'jamie_mcfarlane');
+});
 
-    assert.equal(result.status, 502);
-    assert.deepEqual(result.body, { error: 'Subscription failed' });
-    assert.equal(JSON.stringify({ logs, errors, response: result.body }).includes('reader@example.com'), false);
-  } finally {
-    globalThis.fetch = originalFetch;
-    for (const [key, value] of Object.entries(originalEnvironment)) {
-      if (value === undefined) delete process.env[key];
-      else process.env[key] = value;
-    }
-  }
+test('Appwrite REST client uses the dynamic key and TablesDB endpoints', async () => {
+  const calls = [];
+  const tables = createAppwriteTables({
+    endpoint: 'https://appwrite.test/v1',
+    projectId: 'project-id',
+    apiKey: 'dynamic-key',
+    fetchImpl: async (url, options = {}) => {
+      calls.push({ url: String(url), options });
+      return new Response(JSON.stringify({ total: 1, rows: [{}] }), { status: 200 });
+    },
+  });
+
+  assert.equal(await tables.hasEnabledRoute(ENABLED_KEY), true);
+  await tables.createEvent({ site_key: 'mac_worden' });
+
+  assert.match(calls[0].url, /\/tablesdb\/6a0b628900008b8506e3\/tables\/attribution_routes\/rows\?queries/);
+  assert.ok(decodeURIComponent(calls[0].url).includes(`"values":["${ENABLED_KEY}"]`));
+  assert.ok(decodeURIComponent(calls[0].url).includes('"attribute":"enabled","values":[true]'));
+  assert.equal(calls[0].options.headers['X-Appwrite-Key'], 'dynamic-key');
+  assert.match(calls[1].url, /\/tables\/newsletter_signup_events\/rows$/);
+  assert.equal(calls[1].options.method, 'POST');
+  assert.deepEqual(JSON.parse(calls[1].options.body), {
+    rowId: 'unique()',
+    data: { site_key: 'mac_worden' },
+  });
 });
