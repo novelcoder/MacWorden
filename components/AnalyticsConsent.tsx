@@ -219,6 +219,12 @@ function sendAnalyticsEvent(name: string, parameters: AnalyticsParameters = {}) 
   }
 }
 
+export function trackNewsletterSignupSuccess() {
+  sendAnalyticsEvent("newsletter_signup", {
+    method: "reader_list",
+  });
+}
+
 function recordPageView(pathname: string) {
   const runtime = window.__macWordenAnalytics;
   if (!runtime?.active || runtime.lastPagePath === pathname) return;

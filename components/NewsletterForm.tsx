@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { trackNewsletterSignupSuccess } from "@/components/AnalyticsConsent";
+import { getNewsletterAttribution } from "@/lib/newsletterAttribution";
 
 const SUBSCRIBE_URL = "https://6a0d050f0009f1272cb1.sfo.appwrite.run/";
 
@@ -24,12 +26,18 @@ export default function NewsletterForm({ buttonLabel = "Send It" }: { buttonLabe
       const res = await fetch(SUBSCRIBE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: val }),
+        body: JSON.stringify({
+          email: val,
+          attribution: getNewsletterAttribution(window.location.pathname),
+        }),
       });
-      if (!res.ok) throw new Error("subscription failed");
+      const result = (await res.json().catch(() => null)) as { success?: boolean } | null;
+      if (!res.ok || result?.success !== true) throw new Error("subscription failed");
+
+      trackNewsletterSignupSuccess();
       setStatus("success");
-    } catch (err) {
-      console.error(err);
+    } catch {
+      console.error("Newsletter subscription failed.");
       setStatus("error");
     }
   }

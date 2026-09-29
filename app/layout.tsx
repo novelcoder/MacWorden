@@ -5,6 +5,7 @@ import SnowOverlay from "@/components/SnowOverlay";
 import SiteNav, { SiteNavFallback } from "@/components/SiteNav";
 import SiteFooter, { SiteFooterFallback } from "@/components/SiteFooter";
 import { AnalyticsProvider } from "@/components/AnalyticsConsent";
+import NewsletterAttributionCapture from "@/components/NewsletterAttributionCapture";
 import { GOOGLE_ANALYTICS_ID } from "@/lib/analytics";
 
 export const metadata: Metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({
       </head>
       <body>
         <AnalyticsProvider measurementId={GOOGLE_ANALYTICS_ID}>
+          <NewsletterAttributionCapture />
           <SnowOverlay />
           <Suspense fallback={<SiteNavFallback />}>
             <SiteNav />
