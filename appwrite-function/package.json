@@ -1,5 +1,8 @@
 {
   "name": "macworden-subscribe",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
 }
