@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# SSH keys (never commit)
+novelcode_github
+novelcode_github.pub
+id_rsa*
+id_ed25519*
+
 # debug
 npm-debug.log*
 yarn-debug.log*
