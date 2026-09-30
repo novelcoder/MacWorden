@@ -7,6 +7,7 @@ import { getMacAttributionContext } from "@/lib/attribution";
 import { ATTRIBUTION_QUERY_PARAM, withAttribution } from "@/lib/attribution-routing";
 import { getSeriesCatalog, type SeriesCatalogEntry } from "@/lib/appwrite";
 import { seriesCanonicalPath } from "@/lib/catalog-routing";
+import { isAvailableStatus, isPreorderStatus } from "@/lib/book-status";
 import { placeholderCover } from "@/lib/placeholderCover";
 
 export const metadata: Metadata = {
@@ -42,7 +43,7 @@ export default async function SeriesIndexPage({
   const totalBooks = catalog.reduce((total, { books }) => total + books.length, 0);
   const availableBooks = catalog.reduce(
     (total, { books }) =>
-      total + books.filter(({ status }) => status === "published" || status === "best_seller").length,
+      total + books.filter(({ status }) => isAvailableStatus(status)).length,
     0
   );
 
@@ -90,9 +91,13 @@ export default async function SeriesIndexPage({
                 leadBook?.title || heading,
                 series.name || "A Mac Worden Series"
               );
-              const available = books.filter(
-                ({ status }) => status === "published" || status === "best_seller"
-              ).length;
+              const available = books.filter(({ status }) => isAvailableStatus(status)).length;
+              const hasPreorder = books.some(({ status }) => isPreorderStatus(status));
+              const defaultTag = available
+                ? "Available now"
+                : hasPreorder
+                  ? "Preorder now"
+                  : "Coming soon";
 
               return (
                 <Link
@@ -122,7 +127,7 @@ export default async function SeriesIndexPage({
 
                   <div className={styles.copy}>
                     <div className={styles.cardMeta}>
-                      <span>{series.card_tag || (available ? "Available now" : "Coming soon")}</span>
+                      <span>{series.card_tag || defaultTag}</span>
                       <span>
                         {books.length} {books.length === 1 ? "book" : "books"}
                       </span>

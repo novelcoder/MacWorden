@@ -1,5 +1,6 @@
 import "server-only";
 import { Client, Databases, Query, TablesDB, type Models } from "node-appwrite";
+import { VISIBLE_BOOK_STATUSES, type BookStatus } from "@/lib/book-status";
 
 const SERIES_COLLECTION = "series";
 const BOOKS_COLLECTION = "books";
@@ -7,6 +8,8 @@ const SETTINGS_COLLECTION = "site_settings";
 
 const HERO_BOOK_KEY = "hero_book_id";
 const NEWSLETTER_INCENTIVE_KEY = "newsletter_incentive";
+const BOOKS_PAGE_SIZE = 100;
+const MAX_BOOK_PAGES = 20;
 
 export interface SeriesDoc extends Models.Document {
   slug: string;
@@ -30,7 +33,7 @@ export interface BookDoc extends Models.Document {
   cover_url?: string;
   cover_thumb_url?: string;
   cover_alt?: string;
-  status: "draft" | "coming_soon" | "published" | "best_seller";
+  status: BookStatus;
   series_number?: number;
   release_date?: string;
   store_url?: string;
@@ -151,22 +154,46 @@ export async function getSeriesBySlug(slug: string): Promise<SeriesDoc | null> {
   return res.documents[0] ?? null;
 }
 
+/**
+ * Reads every visible book matching `queries`, paging through the shared
+ * catalog so books never silently drop out once it grows past one page.
+ */
+async function listVisibleBooks(queries: string[] = []): Promise<BookDoc[]> {
+  const books: BookDoc[] = [];
+  let cursor: string | undefined;
+
+  for (let page = 0; page < MAX_BOOK_PAGES; page++) {
+    const res = await getDatabases().listDocuments<BookDoc>(getCmsDatabaseId(), BOOKS_COLLECTION, [
+      ...queries,
+      Query.equal("status", [...VISIBLE_BOOK_STATUSES]),
+      Query.orderAsc("$id"),
+      Query.limit(BOOKS_PAGE_SIZE),
+      ...(cursor ? [Query.cursorAfter(cursor)] : []),
+    ]);
+
+    books.push(...res.documents);
+    if (res.documents.length < BOOKS_PAGE_SIZE) return books;
+    cursor = res.documents[res.documents.length - 1].$id;
+  }
+
+  throw new Error(
+    `The books catalog has more than ${MAX_BOOK_PAGES * BOOKS_PAGE_SIZE} visible rows; raise MAX_BOOK_PAGES.`
+  );
+}
+
 export async function getBooksForSeries(seriesId: string): Promise<BookDoc[]> {
-  const res = await getDatabases().listDocuments<BookDoc>(getCmsDatabaseId(), BOOKS_COLLECTION, [
-    Query.equal("series_id", seriesId),
-    Query.notEqual("status", "draft"),
-    Query.orderAsc("series_number"),
-    Query.limit(100),
-  ]);
-  return res.documents;
+  const books = await listVisibleBooks([Query.equal("series_id", seriesId)]);
+  return books.sort(compareBooksInSeries);
 }
 
 export async function getAllBooks(): Promise<BookDoc[]> {
-  const res = await getDatabases().listDocuments<BookDoc>(getCmsDatabaseId(), BOOKS_COLLECTION, [
-    Query.notEqual("status", "draft"),
-    Query.limit(100),
-  ]);
-  return res.documents;
+  return listVisibleBooks();
+}
+
+function compareBooksInSeries(a: BookDoc, b: BookDoc) {
+  const aNumber = typeof a.series_number === "number" ? a.series_number : Number.MAX_SAFE_INTEGER;
+  const bNumber = typeof b.series_number === "number" ? b.series_number : Number.MAX_SAFE_INTEGER;
+  return aNumber - bNumber || a.title.localeCompare(b.title);
 }
 
 export async function getSeriesCatalog(): Promise<SeriesCatalogEntry[]> {
@@ -180,11 +207,7 @@ export async function getSeriesCatalog(): Promise<SeriesCatalogEntry[]> {
   }
 
   for (const groupedBooks of booksBySeries.values()) {
-    groupedBooks.sort((a, b) => {
-      const aNumber = typeof a.series_number === "number" ? a.series_number : Number.MAX_SAFE_INTEGER;
-      const bNumber = typeof b.series_number === "number" ? b.series_number : Number.MAX_SAFE_INTEGER;
-      return aNumber - bNumber || a.title.localeCompare(b.title);
-    });
+    groupedBooks.sort(compareBooksInSeries);
   }
 
   return series.map((seriesDoc) => ({
