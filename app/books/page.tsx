@@ -11,18 +11,18 @@ import {
 } from "@/lib/attribution-routing";
 import { getSeriesCatalog, type SeriesDoc, type BookDoc } from "@/lib/appwrite";
 import { bookCanonicalPath } from "@/lib/catalog-routing";
+import {
+  bookStatusDisplay,
+  isAvailableStatus,
+  isPreorderStatus,
+  isUpcomingStatus,
+} from "@/lib/book-status";
 import { placeholderCover } from "@/lib/placeholderCover";
 
 export const metadata: Metadata = { title: "The Books" };
 
-const STATUS_LABEL: Record<string, string> = {
-  coming_soon: "Coming Soon",
-  published: "Available Now",
-  best_seller: "Best Seller",
-};
-
 function isAvailable(book: BookDoc): boolean {
-  return book.status === "published" || book.status === "best_seller";
+  return isAvailableStatus(book.status);
 }
 
 export default async function BooksPage({
@@ -96,6 +96,7 @@ function SeriesSection({
   const heading = series.series_heading || series.name || series.slug;
   const number = String(series.display_order ?? idx + 1).padStart(2, "0");
   const available = books.some(isAvailable);
+  const hasPreorder = books.some((book) => isPreorderStatus(book.status));
   const listId = `books_${series.$id}`;
 
   return (
@@ -105,7 +106,7 @@ function SeriesSection({
           <span className={styles.seriesNum}>{number}</span>
           <h2 className={styles.seriesName}>{heading}</h2>
           <span className={`${styles.badge} ${available ? styles.badgeAvailable : styles.badgeComing}`}>
-            {available ? "Out Now" : "Releasing Soon"}
+            {available ? "Out Now" : hasPreorder ? "Preorder Now" : "Releasing Soon"}
           </span>
         </div>
         {series.name && series.name !== heading && <p className={styles.imprint}>{series.name}</p>}
@@ -157,7 +158,7 @@ function BookCover({
   const fallback = placeholderCover(book.title, series.name);
   const cover = book.cover_url && book.cover_url.length ? book.cover_url : fallback;
   const alt = book.cover_alt || `${book.title} cover`;
-  const label = STATUS_LABEL[book.status] ?? book.status;
+  const { label, pill } = bookStatusDisplay(book.status);
   const seriesName = series.series_heading || series.name || series.slug;
 
   return (
@@ -180,7 +181,7 @@ function BookCover({
     >
       <div className={styles.coverImageWrap}>
         <BookCoverImage src={cover} fallbackSrc={fallback} alt={alt} />
-        {book.status === "coming_soon" && <span className={styles.soonPill}>Soon</span>}
+        {isUpcomingStatus(book.status) && pill && <span className={styles.soonPill}>{pill}</span>}
       </div>
       <div className={styles.coverInfo}>
         <div className={styles.coverTitle}>{book.title}</div>

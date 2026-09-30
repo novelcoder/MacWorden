@@ -12,6 +12,12 @@ import {
   type SeriesCatalogEntry,
   type SeriesDoc,
 } from "@/lib/appwrite";
+import {
+  bookStatusDisplay,
+  isAvailableStatus,
+  isPreorderStatus,
+  isUpcomingStatus,
+} from "@/lib/book-status";
 import { placeholderCover } from "@/lib/placeholderCover";
 import { seriesCanonicalPath } from "@/lib/catalog-routing";
 
@@ -68,9 +74,22 @@ export default async function HomePage({
   const seriesCount = seriesCatalog.length;
   const publishedBookCount = seriesCatalog.reduce(
     (total, { books }) =>
-      total + books.filter(({ status }) => status === "published" || status === "best_seller").length,
+      total + books.filter(({ status }) => isAvailableStatus(status)).length,
     0
   );
+  const preorderBookCount = catalogBooks.filter(({ status }) => isPreorderStatus(status)).length;
+  const upcomingBookCount = catalogBooks.filter(({ status }) => isUpcomingStatus(status)).length;
+  const heroTag =
+    heroCatalogBook && isUpcomingStatus(heroCatalogBook.status)
+      ? bookStatusDisplay(heroCatalogBook.status).label
+      : "Coming Soon";
+  const upcomingStat =
+    preorderBookCount > 0
+      ? { count: preorderBookCount, lines: ["Available to", "Preorder"] }
+      : {
+          count: upcomingBookCount || 1,
+          lines: [upcomingBookCount > 1 ? "New Releases" : "New Release", "Coming Soon"],
+        };
 
   return (
     <>
@@ -79,7 +98,7 @@ export default async function HomePage({
         <div className="hero-grid">
           {/* LEFT — featured video */}
           <div className="book-stage fade-up" id="book">
-            <span className="coming-tag">Coming Soon</span>
+            <span className="coming-tag">{heroTag}</span>
             <div className="book-frame hero-video-frame">
               <div className="book-spine" />
               <YouTubeFeatureVideo />
@@ -280,11 +299,11 @@ export default async function HomePage({
                   </div>
                 </div>
                 <div>
-                  <div className="stat-num">01</div>
+                  <div className="stat-num">{String(upcomingStat.count).padStart(2, "0")}</div>
                   <div className="stat-label">
-                    New Release
+                    {upcomingStat.lines[0]}
                     <br />
-                    Coming Soon
+                    {upcomingStat.lines[1]}
                   </div>
                 </div>
               </div>

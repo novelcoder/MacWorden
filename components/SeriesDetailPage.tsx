@@ -21,15 +21,16 @@ import {
   seriesCanonicalSegment,
   seriesMatchesRouteAlias,
 } from "@/lib/catalog-routing";
+import {
+  bookStatusDisplay,
+  formatReleaseTiming,
+  isAvailableStatus,
+  isPreorderStatus,
+  isUpcomingStatus,
+} from "@/lib/book-status";
 import { placeholderCover } from "@/lib/placeholderCover";
 import { SITE_URL } from "@/lib/site";
 import { slugifyTitle } from "@/lib/slugify";
-
-const STATUS_MAP: Record<string, { label: string; cta: string; coming: boolean }> = {
-  coming_soon: { label: "Coming Soon", cta: "Pre-order", coming: true },
-  published: { label: "Available Now", cta: "Buy the Book", coming: false },
-  best_seller: { label: "Best Seller", cta: "Buy the Book", coming: false },
-};
 
 const SERIES_HERO_VIDEOS: Record<
   string,
@@ -119,8 +120,9 @@ export default async function SeriesDetailPage({
     permanentRedirect(attributedPath(seriesCanonicalPath(series)));
   }
 
-  const available = books.filter((b) => b.status === "published" || b.status === "best_seller").length;
-  const coming = books.filter((b) => b.status === "coming_soon").length;
+  const available = books.filter((b) => isAvailableStatus(b.status)).length;
+  const preorders = books.filter((b) => isPreorderStatus(b.status)).length;
+  const coming = books.filter((b) => isUpcomingStatus(b.status)).length - preorders;
   const heading = series.series_heading || series.name || series.slug;
   const heroVideo = SERIES_HERO_VIDEOS[series.slug];
   const listId = `series_${series.$id}_books`;
@@ -166,6 +168,16 @@ export default async function SeriesDetailPage({
                     <div className={styles.statNum}>{String(available).padStart(2, "0")}</div>
                     <div className={styles.statLabel}>
                       Available
+                      <br />
+                      Now
+                    </div>
+                  </div>
+                )}
+                {preorders > 0 && (
+                  <div>
+                    <div className={styles.statNum}>{String(preorders).padStart(2, "0")}</div>
+                    <div className={styles.statLabel}>
+                      Preorder
                       <br />
                       Now
                     </div>
@@ -252,10 +264,10 @@ export function BookDetailRow({
 }) {
   const fallback = placeholderCover(book.title, "A Mac Worden Novel");
   const cover = book.cover_url && book.cover_url.length ? book.cover_url : fallback;
-  const st = STATUS_MAP[book.status] ?? { label: book.status ?? "", cta: "Buy the Book", coming: false };
+  const st = bookStatusDisplay(book.status);
   const alt = book.cover_alt || `${book.title} cover`;
   const blurb = (book.blurb || book.card_description || "").trim();
-  const releaseTiming = st.coming ? formatReleaseTiming(book.release_date) : null;
+  const releaseTiming = formatReleaseTiming(book.status, book.release_date);
   const isBookPage = context === "book";
   const showReleaseTiming = releaseTiming && (!isBookPage || releaseTiming !== "Coming soon");
 
@@ -344,29 +356,6 @@ export function BookDetailRow({
       </div>
     </article>
   );
-}
-
-function formatReleaseTiming(releaseDate?: string): string {
-  if (!releaseDate) return "Coming soon";
-
-  const target = new Date(releaseDate);
-  if (Number.isNaN(target.getTime())) return "Coming soon";
-
-  const now = new Date();
-  if (target.getTime() < now.getTime()) return "Coming soon";
-
-  const targetYear = target.getUTCFullYear();
-  const currentYear = now.getUTCFullYear();
-  const targetMonth = target.getUTCMonth();
-
-  if (targetYear === currentYear + 1 && targetMonth <= 2) return "Coming early next year";
-  if (targetYear === currentYear && targetMonth <= 2) return "Coming early this year";
-
-  return `Coming ${new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(target)}`;
 }
 
 function SeriesNotFound({ slug }: { slug: string }) {
