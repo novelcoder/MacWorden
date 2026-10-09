@@ -3,6 +3,7 @@ import RevealOnScroll from "@/components/RevealOnScroll";
 import NewsletterForm from "@/components/NewsletterForm";
 import BookCoverImage from "@/components/BookCoverImage";
 import YouTubeFeatureVideo from "@/components/YouTubeFeatureVideo";
+import { AMAZON_ASSOCIATE_DISCLOSURE } from "@/lib/affiliate-disclosure";
 import { getMacAttributionContext, purchaseUrlForBook } from "@/lib/attribution";
 import { ATTRIBUTION_QUERY_PARAM, withAttribution } from "@/lib/attribution-routing";
 import {
@@ -138,6 +139,9 @@ export default async function HomePage({
               >
                 Read the Story
               </a>
+              {heroPurchaseUrl ? (
+                <p className="book-meta-disclosure">{AMAZON_ASSOCIATE_DISCLOSURE}</p>
+              ) : null}
             </div>
 
             {/* Email capture */}

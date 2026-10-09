@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CookieSettingsLink } from "@/components/AnalyticsConsent";
+import { AMAZON_ASSOCIATE_DISCLOSURE } from "@/lib/affiliate-disclosure";
 import { sourceKeyFromSearchParams, withAttribution } from "@/lib/attribution-routing";
 
 function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
@@ -40,6 +41,7 @@ function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
             <a href="mailto:macworden@fickledragon.com">Contact</a>
           </li>
         </ul>
+        <p className="footer-disclosure">{AMAZON_ASSOCIATE_DISCLOSURE}</p>
       </div>
     </footer>
   );
