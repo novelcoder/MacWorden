@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CookieSettingsLink } from "@/components/AnalyticsConsent";
+import { AMAZON_ASSOCIATE_DISCLOSURE } from "@/lib/affiliate-disclosure";
 import { sourceKeyFromSearchParams, withAttribution } from "@/lib/attribution-routing";
 
 function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
@@ -14,6 +15,7 @@ function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
         <div>
           <div className="footer-brand">MAC WORDEN</div>
           <div className="footer-copy">&copy; 2026 Mac Worden &middot; All Rights Reserved</div>
+          <p className="footer-disclosure">{AMAZON_ASSOCIATE_DISCLOSURE}</p>
         </div>
         <ul className="footer-links">
           <li>

@@ -378,6 +378,16 @@
     white-space: nowrap;
     transition: all 0.2s;
   }
+  .book-meta-disclosure {
+    grid-column: 1 / -1;
+    margin: -0.5rem 0 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    color: var(--paper-dim);
+    opacity: 0.8;
+    text-align: right;
+  }
   .book-meta-cta:hover {
     background: var(--gold);
     color: var(--ink);
@@ -1014,6 +1024,14 @@
   }
   .footer-links a:hover,
   .footer-links button:hover { color: var(--gold); }
+  .footer-disclosure {
+    margin: 0.35rem 0 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    color: var(--paper-dim);
+    opacity: 0.8;
+  }
 
   /* ─────────── FADE IN ANIM ─────────── */
   .fade-up {

@@ -7,6 +7,7 @@ import ScrollToHash from "@/components/ScrollToHash";
 import BookCoverImage from "@/components/BookCoverImage";
 import NewsletterForm from "@/components/NewsletterForm";
 import YouTubeFeatureVideo from "@/components/YouTubeFeatureVideo";
+import { AMAZON_ASSOCIATE_DISCLOSURE } from "@/lib/affiliate-disclosure";
 import { getMacAttributionContext, purchaseUrlForBook } from "@/lib/attribution";
 import {
   ATTRIBUTION_QUERY_PARAM,
@@ -346,6 +347,7 @@ export function BookDetailRow({
               <span>{book.store_label || st.cta}</span>
               <span className={styles.bookCtaArrow}>&rarr;</span>
             </a>
+            <p className={styles.affiliateNote}>{AMAZON_ASSOCIATE_DISCLOSURE}</p>
           </div>
         ) : st.coming ? (
           <div className={styles.releaseSignup}>

@@ -349,6 +349,15 @@
 .bookCtaArrow { transition: transform 0.2s; }
 .bookCta:hover .bookCtaArrow { transform: translateX(3px); }
 
+.affiliateNote {
+  margin: 0.7rem 0 0;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--paper-dim);
+  opacity: 0.8;
+}
+
 .empty {
   text-align: center;
   padding: 8rem 1rem;
