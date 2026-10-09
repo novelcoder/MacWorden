@@ -1025,12 +1025,9 @@
   .footer-links a:hover,
   .footer-links button:hover { color: var(--gold); }
   .footer-disclosure {
-    grid-column: 1 / -1;
-    margin: 0;
-    padding-top: 1.25rem;
-    border-top: 1px solid var(--border);
+    margin: 0.35rem 0 0;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     letter-spacing: 0.06em;
     color: var(--paper-dim);
     opacity: 0.8;

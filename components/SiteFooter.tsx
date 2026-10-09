@@ -15,6 +15,7 @@ function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
         <div>
           <div className="footer-brand">MAC WORDEN</div>
           <div className="footer-copy">&copy; 2026 Mac Worden &middot; All Rights Reserved</div>
+          <p className="footer-disclosure">{AMAZON_ASSOCIATE_DISCLOSURE}</p>
         </div>
         <ul className="footer-links">
           <li>
@@ -41,7 +42,6 @@ function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
             <a href="mailto:macworden@fickledragon.com">Contact</a>
           </li>
         </ul>
-        <p className="footer-disclosure">{AMAZON_ASSOCIATE_DISCLOSURE}</p>
       </div>
     </footer>
   );
