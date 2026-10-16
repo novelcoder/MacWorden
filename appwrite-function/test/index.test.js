@@ -301,8 +301,8 @@ test('a site with no group configured fails without calling MailerLite', async (
   assert.equal(events.length, 0);
 });
 
-test('Jamie google keys need only the gads_ prefix and an enabled route', async () => {
-  const key = 'gads_jm_pt_2026_10';
+test('Jamie google keys need only the gads_ prefix and an enabled route, never an mw key', async () => {
+  const key = 'gads_sm_b1_2026_09';
   const { events } = await run(
     { site: 'jamiemcfarlane', email: 'reader@example.com', source_key: key, signup_path: '/' },
     { tables: fakeTables({ enabled: [key] }) }
@@ -315,6 +315,24 @@ test('Jamie google keys need only the gads_ prefix and an enabled route', async 
     signup_path: '/',
   });
 
+  const noSegment = 'gads_pt_2026_10';
+  const open = await run(
+    { site: 'jamiemcfarlane', email: 'reader@example.com', source_key: noSegment, signup_path: '/' },
+    { tables: fakeTables({ enabled: [noSegment] }) }
+  );
+  assert.equal(open.events[0].source_type, 'google_ads');
+
+  // A Mac Worden key, even with an enabled route, is not a Jamie source.
+  const macKey = 'gads_mw_jc_b1_2026_09';
+  const other = await run(
+    { site: 'jamiemcfarlane', email: 'reader@example.com', source_key: macKey, signup_path: '/' },
+    { tables: fakeTables({ enabled: [macKey] }) }
+  );
+  assert.equal(other.events[0].source_type, 'website_unattributed');
+  assert.equal('source_key' in other.events[0], false);
+  assert.deepEqual(other.lookups, []);
+
+  // And Jamie's keys are not Mac Worden sources.
   const mac = await run(
     { email: 'reader@example.com', source_key: key, signup_path: '/' },
     { tables: fakeTables({ enabled: [key] }) }

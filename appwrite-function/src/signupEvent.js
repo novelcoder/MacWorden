@@ -15,15 +15,17 @@ const MAX_PATH_LENGTH = 256;
 // A Mac Google source key: valid syntax, the `gads_` prefix, and the `mw` brand segment
 // shared with the site's Amazon Attribution routing.
 export function parseMacGoogleSourceKey(value) {
-  return parseGoogleSourceKey(value, 'mw');
+  return parseGoogleSourceKey(value, { requiredSegment: 'mw' });
 }
 
-// A Google source key for any site: valid syntax and the `gads_` prefix, plus the site's
-// brand segment when it has one (`null` means no segment is required).
-export function parseGoogleSourceKey(value, brandSegment) {
+// A Google source key for any site: valid syntax and the `gads_` prefix, containing the
+// site's required segment (if it has one) and none of the segments reserved by other brands.
+export function parseGoogleSourceKey(value, { requiredSegment = null, rejectedSegments = [] } = {}) {
   if (typeof value !== 'string' || !SOURCE_KEY_PATTERN.test(value)) return null;
   if (!value.startsWith('gads_')) return null;
-  return brandSegment === null || value.split('_').includes(brandSegment) ? value : null;
+  const segments = value.split('_');
+  if (requiredSegment !== null && !segments.includes(requiredSegment)) return null;
+  return rejectedSegments.some((segment) => segments.includes(segment)) ? null : value;
 }
 
 export function normalizeSignupPath(value) {
@@ -44,8 +46,12 @@ export function chicagoDate(now = new Date()) {
 
 // Resolves the reported source. `hasEnabledRoute` is asked only about keys that already
 // pass the Mac Google syntax check; anything else is unattributed website traffic.
-export async function resolveSource(rawSourceKey, hasEnabledRoute, brandSegment = 'mw') {
-  const sourceKey = parseGoogleSourceKey(rawSourceKey, brandSegment);
+export async function resolveSource(
+  rawSourceKey,
+  hasEnabledRoute,
+  rules = { requiredSegment: 'mw' }
+) {
+  const sourceKey = parseGoogleSourceKey(rawSourceKey, rules);
   if (sourceKey && (await hasEnabledRoute(sourceKey))) {
     return { source_type: 'google_ads', source_key: sourceKey };
   }
@@ -54,7 +60,7 @@ export async function resolveSource(rawSourceKey, hasEnabledRoute, brandSegment 
 
 export async function buildSignupEvent({
   siteKey = SITE_KEY,
-  brandSegment = 'mw',
+  sourceRules = { requiredSegment: 'mw' },
   sourceKey,
   signupPath,
   hasEnabledRoute,
@@ -63,7 +69,7 @@ export async function buildSignupEvent({
   return {
     site_key: siteKey,
     event_date: chicagoDate(now),
-    ...(await resolveSource(sourceKey, hasEnabledRoute, brandSegment)),
+    ...(await resolveSource(sourceKey, hasEnabledRoute, sourceRules)),
     signup_path: normalizeSignupPath(signupPath),
   };
 }

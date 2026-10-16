@@ -5,21 +5,24 @@
 export const DEFAULT_SITE = 'macworden';
 
 // `groupIdEnv` is required. `apiKeyEnv` is optional: a site without its own key uses the
-// shared MAILERLITE_API_KEY. `brandSegment` is the segment a Google source key must contain
-// for this site (null means the `gads_` prefix and an enabled route are enough).
+// shared MAILERLITE_API_KEY. A Google source key must contain `requiredSegment` (when set)
+// and none of `rejectedSegments`. attribution_routes is shared, so Jamie's site rejects Mac
+// Worden's `mw` keys but does not force a segment of its own.
 export const SITES = {
   macworden: {
     siteKey: 'mac_worden',
     groupIdEnv: 'MAILERLITE_GROUP_ID',
     apiKeyEnv: 'MAILERLITE_API_KEY_MACWORDEN',
-    brandSegment: 'mw',
+    requiredSegment: 'mw',
+    rejectedSegments: [],
     origins: ['https://macworden.com', 'https://www.macworden.com'],
   },
   jamiemcfarlane: {
     siteKey: 'jamie_mcfarlane',
     groupIdEnv: 'MAILERLITE_GROUP_ID_JAMIEMCFARLANE',
     apiKeyEnv: 'MAILERLITE_API_KEY_JAMIEMCFARLANE',
-    brandSegment: null,
+    requiredSegment: null,
+    rejectedSegments: ['mw'],
     origins: ['https://jamiemcfarlane.com', 'https://www.jamiemcfarlane.com'],
   },
 };
