@@ -46,7 +46,7 @@ function fakeTables({ enabled = [ENABLED_KEY], failWrite = false, failLookup = f
 
 async function run(
   body,
-  { mailerLiteStatus = 200, tables = fakeTables(), headers = {}, extraEnv = {}, removeEnv = [] } = {}
+  { mailerLiteStatus = 200, tables = fakeTables(), headers = {}, extraEnv = {}, removeEnv = [], mailerLiteHeaders = {} } = {}
 ) {
   const originalFetch = globalThis.fetch;
   const merged = { ...env, ...extraEnv };
@@ -62,7 +62,7 @@ async function run(
       body: JSON.parse(options.body),
       apiKey: options.headers['X-MailerLite-ApiKey'],
     });
-    return new Response('{}', { status: mailerLiteStatus });
+    return new Response('{}', { status: mailerLiteStatus, headers: mailerLiteHeaders });
   };
   try {
     const result = await createHandler({ createTables: tables.factory })({
@@ -398,4 +398,48 @@ test('site config only accepts numeric group IDs', () => {
   assert.equal(mailerLiteConfig(site, { MAILERLITE_GROUP_ID: '12345' }), null);
   assert.equal(resolveSite(undefined).name, 'macworden');
   assert.equal(resolveSite('toString'), null);
+});
+
+test('every error carries a stable code next to the error text', async () => {
+  const cases = [
+    [{ site: 'nope', email: 'a@example.com' }, {}, 400, 'unknown_site'],
+    [{ email: 'bad' }, {}, 400, 'invalid_email'],
+    [{ email: 'a@example.com', elapsed_ms: 5 }, {}, 400, 'try_again'],
+    [{ email: 'a@example.com' }, { mailerLiteStatus: 400 }, 400, 'invalid_email'],
+    [{ email: 'a@example.com' }, { mailerLiteStatus: 422 }, 400, 'invalid_email'],
+    [{ email: 'a@example.com' }, { mailerLiteStatus: 401 }, 503, 'subscription_unavailable'],
+    [{ email: 'a@example.com' }, { mailerLiteStatus: 403 }, 503, 'subscription_unavailable'],
+    [{ email: 'a@example.com' }, { mailerLiteStatus: 404 }, 503, 'subscription_unavailable'],
+    [{ email: 'a@example.com' }, { mailerLiteStatus: 429 }, 503, 'rate_limited'],
+    [{ email: 'a@example.com' }, { mailerLiteStatus: 500 }, 502, 'provider_unavailable'],
+    [
+      { site: 'jamiemcfarlane', email: 'a@example.com' },
+      { removeEnv: ['MAILERLITE_GROUP_ID_JAMIEMCFARLANE'] },
+      503,
+      'subscription_unavailable',
+    ],
+  ];
+  for (const [body, options, status, code] of cases) {
+    const { result, events } = await run(body, options);
+    assert.equal(result.status, status, code);
+    assert.equal(result.body.code, code);
+    assert.equal(typeof result.body.error, 'string');
+    assert.equal(events.length, 0);
+  }
+});
+
+test('a MailerLite rate limit passes Retry-After through', async () => {
+  const { result } = await run(
+    { email: 'a@example.com' },
+    { mailerLiteStatus: 429, mailerLiteHeaders: { 'Retry-After': '30' } }
+  );
+  assert.equal(result.headers['Retry-After'], '30');
+
+  const none = await run({ email: 'a@example.com' }, { mailerLiteStatus: 429 });
+  assert.equal('Retry-After' in none.result.headers, false);
+});
+
+test('success keeps its original shape', async () => {
+  const { result } = await run({ email: 'a@example.com' });
+  assert.deepEqual(result.body, { success: true });
 });

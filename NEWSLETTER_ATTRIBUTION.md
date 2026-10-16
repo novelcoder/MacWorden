@@ -19,6 +19,22 @@ The function serves both author sites. The form posts
   retryable error; a missing value is accepted for older forms.
 - Browsers are limited by CORS to the two sites' origins.
 
+## Responses
+
+Success is `200 { success: true }`. Errors are `{ error, code }`, where `error` is
+human-readable text and `code` is stable:
+
+| status | code                       | when                                                   |
+| ------ | -------------------------- | ------------------------------------------------------ |
+| 400    | `invalid_request`          | the body is not a JSON object                          |
+| 400    | `unknown_site`             | `site` is not `macworden` or `jamiemcfarlane`          |
+| 400    | `invalid_email`            | the address is malformed, or MailerLite rejected it    |
+| 400    | `try_again`                | `elapsed_ms` is under one second                       |
+| 405    | `method_not_allowed`       | not `POST` or `OPTIONS`                                |
+| 503    | `rate_limited`             | MailerLite returned 429; `Retry-After` is passed on    |
+| 503    | `subscription_unavailable` | the site's MailerLite config is missing or rejected    |
+| 502    | `provider_unavailable`     | MailerLite failed or could not be reached              |
+
 ## Row
 
 | column        | value                                                              |
