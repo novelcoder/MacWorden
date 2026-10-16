@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createHandler } from '../src/index.js';
+import { normalizeAndValidateEmail } from '../src/email.js';
+import { mailerLiteConfig, resolveSite } from '../src/sites.js';
 import {
   buildSignupEvent,
   chicagoDate,
@@ -15,6 +17,7 @@ const DISABLED_KEY = 'gads_mw_preorders_2026_09';
 const env = {
   MAILERLITE_API_KEY: 'test-api-key',
   MAILERLITE_GROUP_ID: '12345',
+  MAILERLITE_GROUP_ID_JAMIEMCFARLANE: '67890',
   APPWRITE_FUNCTION_API_ENDPOINT: 'https://appwrite.test/v1',
   APPWRITE_FUNCTION_PROJECT_ID: 'project-id',
 };
@@ -41,19 +44,33 @@ function fakeTables({ enabled = [ENABLED_KEY], failWrite = false, failLookup = f
   };
 }
 
-async function run(body, { mailerLiteStatus = 200, tables = fakeTables() } = {}) {
+async function run(
+  body,
+  { mailerLiteStatus = 200, tables = fakeTables(), headers = {}, extraEnv = {}, removeEnv = [] } = {}
+) {
   const originalFetch = globalThis.fetch;
-  const saved = Object.fromEntries(Object.keys(env).map((k) => [k, process.env[k]]));
-  Object.assign(process.env, env);
+  const merged = { ...env, ...extraEnv };
+  const touched = [...Object.keys(merged), ...removeEnv];
+  const saved = Object.fromEntries(touched.map((k) => [k, process.env[k]]));
+  Object.assign(process.env, merged);
+  for (const k of removeEnv) delete process.env[k];
   const mailerLiteCalls = [];
   const logs = [];
   globalThis.fetch = async (url, options) => {
-    mailerLiteCalls.push({ url: String(url), body: JSON.parse(options.body) });
+    mailerLiteCalls.push({
+      url: String(url),
+      body: JSON.parse(options.body),
+      apiKey: options.headers['X-MailerLite-ApiKey'],
+    });
     return new Response('{}', { status: mailerLiteStatus });
   };
   try {
     const result = await createHandler({ createTables: tables.factory })({
-      req: { method: 'POST', headers: { 'x-appwrite-key': 'dynamic-key' }, body: JSON.stringify(body) },
+      req: {
+        method: 'POST',
+        headers: { 'x-appwrite-key': 'dynamic-key', ...headers },
+        body: JSON.stringify(body),
+      },
       res: mockRes,
       log: (m) => logs.push(m),
       error: (m) => logs.push(m),
@@ -229,4 +246,138 @@ test('Appwrite REST client uses the dynamic key and TablesDB endpoints', async (
     rowId: 'unique()',
     data: { site_key: 'mac_worden' },
   });
+});
+
+test('a request without a site keeps the original Mac Worden behaviour', async () => {
+  const { mailerLiteCalls, events } = await run({ email: 'reader@example.com', signup_path: '/' });
+  assert.match(mailerLiteCalls[0].url, /\/groups\/12345\/subscribers$/);
+  assert.equal(events[0].site_key, 'mac_worden');
+});
+
+test('site selects the MailerLite group and labels the event', async () => {
+  const { mailerLiteCalls, events } = await run({
+    site: 'jamiemcfarlane',
+    email: 'reader@example.com',
+    signup_path: '/',
+  });
+  assert.match(mailerLiteCalls[0].url, /\/groups\/67890\/subscribers$/);
+  assert.equal(events[0].site_key, 'jamie_mcfarlane');
+});
+
+test('a group ID in the request is ignored and unknown sites are rejected', async () => {
+  const { mailerLiteCalls } = await run({
+    site: 'macworden',
+    group_id: '999',
+    email: 'reader@example.com',
+  });
+  assert.match(mailerLiteCalls[0].url, /\/groups\/12345\//);
+
+  for (const site of ['evil', '', 42, '__proto__', 'constructor']) {
+    const { result, mailerLiteCalls: calls, events } = await run({ site, email: 'reader@example.com' });
+    assert.equal(result.status, 400, String(site));
+    assert.equal(calls.length, 0);
+    assert.equal(events.length, 0);
+  }
+});
+
+test('a site can use its own MailerLite key, otherwise the shared one', async () => {
+  const own = await run(
+    { site: 'jamiemcfarlane', email: 'reader@example.com' },
+    { extraEnv: { MAILERLITE_API_KEY_JAMIEMCFARLANE: 'jamie-key' } }
+  );
+  assert.equal(own.mailerLiteCalls[0].apiKey, 'jamie-key');
+
+  const shared = await run({ site: 'jamiemcfarlane', email: 'reader@example.com' });
+  assert.equal(shared.mailerLiteCalls[0].apiKey, 'test-api-key');
+});
+
+test('a site with no group configured fails without calling MailerLite', async () => {
+  const { result, mailerLiteCalls, events } = await run(
+    { site: 'jamiemcfarlane', email: 'reader@example.com' },
+    { removeEnv: ['MAILERLITE_GROUP_ID_JAMIEMCFARLANE'] }
+  );
+  assert.equal(result.status, 503);
+  assert.equal(mailerLiteCalls.length, 0);
+  assert.equal(events.length, 0);
+});
+
+test('Jamie google keys need only the gads_ prefix and an enabled route', async () => {
+  const key = 'gads_jm_pt_2026_10';
+  const { events } = await run(
+    { site: 'jamiemcfarlane', email: 'reader@example.com', source_key: key, signup_path: '/' },
+    { tables: fakeTables({ enabled: [key] }) }
+  );
+  assert.deepEqual(events[0], {
+    site_key: 'jamie_mcfarlane',
+    event_date: events[0].event_date,
+    source_type: 'google_ads',
+    source_key: key,
+    signup_path: '/',
+  });
+
+  const mac = await run(
+    { email: 'reader@example.com', source_key: key, signup_path: '/' },
+    { tables: fakeTables({ enabled: [key] }) }
+  );
+  assert.equal(mac.events[0].source_type, 'website_unattributed');
+});
+
+test('a filled honeypot looks like success but contacts nothing', async () => {
+  const { result, mailerLiteCalls, events } = await run({
+    email: 'reader@example.com',
+    website: 'http://spam.example',
+  });
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body, { success: true });
+  assert.equal(mailerLiteCalls.length, 0);
+  assert.equal(events.length, 0);
+
+  const blank = await run({ email: 'reader@example.com', website: '   ' });
+  assert.equal(blank.mailerLiteCalls.length, 1);
+});
+
+test('implausibly fast or malformed form timing is rejected, a plausible one passes', async () => {
+  for (const elapsed_ms of [0, 200, 999, -5, 'fast', null, NaN]) {
+    const { result, mailerLiteCalls } = await run({ email: 'reader@example.com', elapsed_ms });
+    assert.equal(result.status, 400, String(elapsed_ms));
+    assert.equal(mailerLiteCalls.length, 0);
+  }
+  const ok = await run({ email: 'reader@example.com', elapsed_ms: 4200 });
+  assert.equal(ok.result.status, 200);
+  assert.equal(ok.mailerLiteCalls.length, 1);
+});
+
+test('email validation accepts normal addresses and rejects malformed ones', () => {
+  assert.equal(normalizeAndValidateEmail('  Reader@Example.COM '), 'reader@example.com');
+  assert.equal(normalizeAndValidateEmail('first.last+tag@sub.example.co'), 'first.last+tag@sub.example.co');
+  for (const bad of [
+    '', 'a@b', '@example.com', 'a@@example.com', 'a b@example.com', '.a@example.com',
+    'a.@example.com', 'a..b@example.com', 'a@exa mple.com', 'a@-example.com', 'a@example..com',
+    `${'a'.repeat(65)}@example.com`, `a@${'b'.repeat(250)}.com`, 'a@example.com\nBcc: x@y.z', null, 42, {},
+  ]) {
+    assert.equal(normalizeAndValidateEmail(bad), null, String(bad));
+  }
+});
+
+test('CORS reflects only the sites that use this function', async () => {
+  const allowed = await run({ email: 'reader@example.com' }, { headers: { origin: 'https://www.macworden.com' } });
+  assert.equal(allowed.result.headers['Access-Control-Allow-Origin'], 'https://www.macworden.com');
+
+  const jamie = await run({ email: 'reader@example.com' }, { headers: { origin: 'https://jamiemcfarlane.com' } });
+  assert.equal(jamie.result.headers['Access-Control-Allow-Origin'], 'https://jamiemcfarlane.com');
+
+  for (const origin of ['https://evil.example', 'http://macworden.com', 'null', undefined]) {
+    const { result } = await run({ email: 'reader@example.com' }, { headers: { origin } });
+    assert.equal('Access-Control-Allow-Origin' in result.headers, false, String(origin));
+    assert.equal(result.headers.Vary, 'Origin');
+  }
+});
+
+test('site config only accepts numeric group IDs', () => {
+  const site = resolveSite('macworden');
+  assert.equal(mailerLiteConfig(site, { MAILERLITE_API_KEY: 'k', MAILERLITE_GROUP_ID: '12345' }).groupId, '12345');
+  assert.equal(mailerLiteConfig(site, { MAILERLITE_API_KEY: 'k', MAILERLITE_GROUP_ID: '../x' }), null);
+  assert.equal(mailerLiteConfig(site, { MAILERLITE_GROUP_ID: '12345' }), null);
+  assert.equal(resolveSite(undefined).name, 'macworden');
+  assert.equal(resolveSite('toString'), null);
 });
