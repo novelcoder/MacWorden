@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { getNewsletterSignupContext } from "@/lib/newsletterAttribution";
 
 const SUBSCRIBE_URL = "https://6a0d050f0009f1272cb1.sfo.appwrite.run/";
@@ -8,11 +8,17 @@ const SUBSCRIBE_URL = "https://6a0d050f0009f1272cb1.sfo.appwrite.run/";
 export default function NewsletterForm({ buttonLabel = "Send It" }: { buttonLabel?: string }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [invalid, setInvalid] = useState(false);
+  const shownAt = useRef<number | null>(null);
+
+  useEffect(() => {
+    shownAt.current = performance.now();
+  }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const input = e.currentTarget.elements.namedItem("email") as HTMLInputElement;
     const val = input.value.trim();
+    const honeypot = e.currentTarget.elements.namedItem("website") as HTMLInputElement | null;
 
     if (!val || !val.includes("@")) {
       setInvalid(true);
@@ -25,7 +31,15 @@ export default function NewsletterForm({ buttonLabel = "Send It" }: { buttonLabe
       const res = await fetch(SUBSCRIBE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: val, ...getNewsletterSignupContext() }),
+        body: JSON.stringify({
+          site: "macworden",
+          email: val,
+          website: honeypot?.value ?? "",
+          ...(shownAt.current === null
+            ? {}
+            : { elapsed_ms: Math.round(performance.now() - shownAt.current) }),
+          ...getNewsletterSignupContext(),
+        }),
       });
       const result = (await res.json().catch(() => null)) as { success?: boolean } | null;
       if (!res.ok || result?.success !== true) throw new Error("subscription failed");
@@ -60,6 +74,16 @@ export default function NewsletterForm({ buttonLabel = "Send It" }: { buttonLabe
           required
           disabled={status === "submitting"}
           style={invalid ? { borderColor: "#8B2418" } : undefined}
+        />
+        {/* Honeypot: people never see or fill this; scripts that fill every field do. */}
+        <input
+          type="text"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          defaultValue=""
+          style={{ position: "absolute", left: "-10000px", width: 1, height: 1, opacity: 0 }}
         />
         <button type="submit" disabled={status === "submitting"}>
           {status === "submitting" ? "Joining..." : buttonLabel}

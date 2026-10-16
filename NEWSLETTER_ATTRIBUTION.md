@@ -5,6 +5,20 @@ writes one anonymous row to the shared `newsletter_signup_events` table. That is
 feature: a count of accepted signup requests by site, day, source and page. It does not
 distinguish new, existing or resubscribed readers, and it adds nothing to MailerLite.
 
+## Request
+
+The function serves both author sites. The form posts
+`{ site, email, source_key?, signup_path, website, elapsed_ms }`:
+
+- `site` is `macworden` or `jamiemcfarlane`; it picks the MailerLite group and the row's
+  `site_key` server-side. A missing `site` means `macworden` (the original request shape).
+  Unknown sites are rejected, and a group ID in the request is never used.
+- `website` is a hidden honeypot. When filled, the function returns success without calling
+  MailerLite or writing a row.
+- `elapsed_ms` is the time the form was on screen. Under one second is rejected with a
+  retryable error; a missing value is accepted for older forms.
+- Browsers are limited by CORS to the two sites' origins.
+
 ## Row
 
 | column        | value                                                              |
