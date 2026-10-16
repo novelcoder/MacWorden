@@ -38,6 +38,17 @@ function readStoredSourceKey(storage: Storage | null): string | undefined {
   }
 }
 
+// Newsletter links use the fixed key `?source_key=nl`. It is deliberately not a Mac source
+// key (no `mw` segment), so it is never stored for signups or sent to the signup function.
+const NEWSLETTER_LANDING_KEY = "nl";
+
+export function newsletterLandingKeyFromSearch(search: string): string | undefined {
+  const values = new URLSearchParams(search).getAll(NEWSLETTER_SOURCE_QUERY_PARAM);
+  return values.length === 1 && values[0] === NEWSLETTER_LANDING_KEY
+    ? NEWSLETTER_LANDING_KEY
+    : undefined;
+}
+
 export function captureNewsletterSourceKey(): void {
   if (typeof window === "undefined") return;
 

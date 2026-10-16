@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   NEWSLETTER_ATTRIBUTION_STORAGE_KEY,
+  newsletterLandingKeyFromSearch,
   captureNewsletterSourceKey,
   getNewsletterSignupContext,
   normalizeNewsletterSourceKey,
@@ -61,4 +62,15 @@ test("Mac source keys require the mw brand segment", () => {
   assert.equal(normalizeNewsletterSourceKey(key), key);
   assert.equal(normalizeNewsletterSourceKey("gads_sm_b1_2026_09"), undefined);
   assert.equal(normalizeNewsletterSourceKey(null), undefined);
+});
+
+test("newsletter landing requires exactly source_key=nl", () => {
+  assert.equal(newsletterLandingKeyFromSearch("?source_key=nl"), "nl");
+  assert.equal(newsletterLandingKeyFromSearch("?x=1&source_key=nl"), "nl");
+  assert.equal(newsletterLandingKeyFromSearch("?source_key=gads_mw_jc_b1_2026_09"), undefined);
+  assert.equal(newsletterLandingKeyFromSearch("?source_key=nl_mw_2026_10"), undefined);
+  assert.equal(newsletterLandingKeyFromSearch("?source_key=NL"), undefined);
+  assert.equal(newsletterLandingKeyFromSearch("?source_key=nl&source_key=nl"), undefined);
+  assert.equal(newsletterLandingKeyFromSearch(""), undefined);
+  assert.equal(normalizeNewsletterSourceKey("nl"), undefined);
 });

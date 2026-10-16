@@ -22,5 +22,8 @@ These property-side settings prevent GA4 from duplicating the application's manu
 - `view_item`: a specific book section opened through a book link.
 - `retailer_link_click`: an outbound retailer link selected; this is not a purchase.
 - `reader_list_cta_click`: a link to the reader-list form selected; this is not a completed signup.
+- `newsletter_landing`: a visitor arrived from a newsletter link tagged `?source_key=nl`. It carries `source_key: nl` and is sent once per tab session. It is not a signup.
+
+The event name alone identifies newsletter landings, so no custom dimension is needed.
 
 No event includes a name, email address, form contents, or full outbound URL.

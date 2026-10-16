@@ -16,6 +16,7 @@ import {
   ANALYTICS_COOKIE_MAX_AGE_SECONDS,
   type AnalyticsConsentChoice,
 } from "@/lib/analytics";
+import { newsletterLandingKeyFromSearch } from "@/lib/newsletterAttribution";
 import styles from "./AnalyticsConsent.module.css";
 
 type ConsentState = "loading" | "undecided" | AnalyticsConsentChoice;
@@ -32,6 +33,7 @@ type AnalyticsRuntime = {
   scriptRequested: boolean;
   viewedItems: Set<string>;
   viewedLists: Set<string>;
+  newsletterLandings: Set<string>;
 };
 
 declare global {
@@ -74,6 +76,7 @@ function getRuntime(measurementId: string): AnalyticsRuntime {
       scriptRequested: false,
       viewedItems: new Set<string>(),
       viewedLists: new Set<string>(),
+      newsletterLandings: new Set<string>(),
     };
   }
 
@@ -235,6 +238,28 @@ function recordPageView(pathname: string) {
   sendAnalyticsEvent("page_view", {
     ...(pageReferrer ? { page_referrer: pageReferrer } : {}),
   });
+}
+
+const NEWSLETTER_LANDING_STORAGE_PREFIX = "macworden_newsletter_landing_v1:";
+
+function recordNewsletterLanding() {
+  const runtime = window.__macWordenAnalytics;
+  if (!runtime?.active) return;
+
+  const sourceKey = newsletterLandingKeyFromSearch(window.location.search);
+  if (!sourceKey || runtime.newsletterLandings.has(sourceKey)) return;
+  runtime.newsletterLandings.add(sourceKey);
+
+  // Send once per tab session so a reload does not count as a second landing.
+  const storageKey = `${NEWSLETTER_LANDING_STORAGE_PREFIX}${sourceKey}`;
+  try {
+    if (window.sessionStorage.getItem(storageKey)) return;
+    window.sessionStorage.setItem(storageKey, "1");
+  } catch {
+    // Storage can be unavailable; the in-memory guard above still applies.
+  }
+
+  sendAnalyticsEvent("newsletter_landing", { source_key: sourceKey });
 }
 
 function analyticsItem(element: HTMLElement, list?: HTMLElement): AnalyticsParameters | null {
@@ -436,6 +461,7 @@ export function AnalyticsProvider({
 
     initializeAnalytics(measurementId);
     recordPageView(pathname);
+    recordNewsletterLanding();
     recordItemLists();
     recordHashItem();
   }, [consent, measurementId, pathname]);
