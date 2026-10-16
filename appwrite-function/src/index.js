@@ -32,7 +32,10 @@ async function recordSignupEvent({ req, body, site, error, createTables }) {
     });
     const event = await buildSignupEvent({
       siteKey: site.siteKey,
-      brandSegment: site.brandSegment,
+      sourceRules: {
+        requiredSegment: site.requiredSegment,
+        rejectedSegments: site.rejectedSegments,
+      },
       sourceKey: body?.source_key,
       signupPath: body?.signup_path,
       hasEnabledRoute: (sourceKey) => tables.hasEnabledRoute(sourceKey),
