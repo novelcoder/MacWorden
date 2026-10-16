@@ -16,6 +16,26 @@ function corsHeaders(origin) {
   };
 }
 
+// Error responses carry a stable `code` for callers (jamiemcfarlane.com maps these to its
+// form messages) next to the human-readable `error` older callers already read.
+function fail(res, status, code, error, cors, extraHeaders = {}) {
+  return res.json({ error, code }, status, { ...cors, ...extraHeaders });
+}
+
+// Maps a MailerLite failure to the reader-facing result.
+function providerFailure(result) {
+  if (result.status === 400 || result.status === 422) {
+    return { status: 400, code: 'invalid_email', error: 'Invalid email address' };
+  }
+  if (result.status === 401 || result.status === 403 || result.status === 404) {
+    return { status: 503, code: 'subscription_unavailable', error: 'Subscription unavailable' };
+  }
+  if (result.status === 429) {
+    return { status: 503, code: 'rate_limited', error: 'Subscription failed' };
+  }
+  return { status: 502, code: 'provider_unavailable', error: 'Subscription failed' };
+}
+
 function headerValue(headers, name) {
   if (!headers) return undefined;
   return headers[name] ?? headers[name.toLowerCase()];
@@ -57,22 +77,22 @@ export function createHandler({ createTables = createAppwriteTables } = {}) {
     }
 
     if (method !== 'POST') {
-      return res.json({ error: 'Method not allowed' }, 405, cors);
+      return fail(res, 405, 'method_not_allowed', 'Method not allowed', cors);
     }
 
     let body;
     try {
       body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     } catch {
-      return res.json({ error: 'Invalid request body' }, 400, cors);
+      return fail(res, 400, 'invalid_request', 'Invalid request body', cors);
     }
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
-      return res.json({ error: 'Invalid request body' }, 400, cors);
+      return fail(res, 400, 'invalid_request', 'Invalid request body', cors);
     }
 
     const site = resolveSite(body.site);
     if (!site) {
-      return res.json({ error: 'Unknown site' }, 400, cors);
+      return fail(res, 400, 'unknown_site', 'Unknown site', cors);
     }
 
     // A filled hidden field means a bot. Return the normal response without contacting
@@ -83,20 +103,20 @@ export function createHandler({ createTables = createAppwriteTables } = {}) {
 
     const email = normalizeAndValidateEmail(body.email);
     if (!email) {
-      return res.json({ error: 'Invalid email address' }, 400, cors);
+      return fail(res, 400, 'invalid_email', 'Invalid email address', cors);
     }
 
     // Optional while older forms are still in use; once sent it must be plausible.
     if (body.elapsed_ms !== undefined) {
       if (typeof body.elapsed_ms !== 'number' || !(body.elapsed_ms >= MIN_FORM_TIME_MS)) {
-        return res.json({ error: 'Please try again' }, 400, cors);
+        return fail(res, 400, 'try_again', 'Please try again', cors);
       }
     }
 
     const config = mailerLiteConfig(site);
     if (!config) {
       error(`MailerLite is not configured for site ${site.name}.`);
-      return res.json({ error: 'Subscription unavailable' }, 503, cors);
+      return fail(res, 503, 'subscription_unavailable', 'Subscription unavailable', cors);
     }
 
     log('Processing newsletter subscription request.');
@@ -104,7 +124,15 @@ export function createHandler({ createTables = createAppwriteTables } = {}) {
     const result = await subscribeToGroup({ ...config, email });
     if (!result.ok) {
       error(`MailerLite subscription request failed with status ${result.status}.`);
-      return res.json({ error: 'Subscription failed' }, 502, cors);
+      const failure = providerFailure(result);
+      return fail(
+        res,
+        failure.status,
+        failure.code,
+        failure.error,
+        cors,
+        failure.code === 'rate_limited' && result.retryAfter ? { 'Retry-After': result.retryAfter } : {}
+      );
     }
 
     await recordSignupEvent({ req, body, site, error, createTables });

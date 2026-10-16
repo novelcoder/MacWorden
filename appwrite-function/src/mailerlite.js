@@ -4,8 +4,8 @@
 export const MAILERLITE_BASE_URL = 'https://api.mailerlite.com/api/v2';
 const REQUEST_TIMEOUT_MS = 10_000;
 
-// Subscribes `email` to the group. Returns { ok: true } or { ok: false, status }, where
-// status is 0 when MailerLite could not be reached.
+// Subscribes `email` to the group. Returns { ok: true } or { ok: false, status, retryAfter },
+// where status is 0 when MailerLite could not be reached.
 export async function subscribeToGroup({ apiKey, groupId, email, fetchImpl = fetch }) {
   let response;
   try {
@@ -21,5 +21,7 @@ export async function subscribeToGroup({ apiKey, groupId, email, fetchImpl = fet
   } catch {
     return { ok: false, status: 0 };
   }
-  return response.ok ? { ok: true } : { ok: false, status: response.status };
+  return response.ok
+    ? { ok: true }
+    : { ok: false, status: response.status, retryAfter: response.headers.get('Retry-After') };
 }
