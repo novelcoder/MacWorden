@@ -1,5 +1,6 @@
 import { isVisibleBookStatus } from "./book-status.ts";
 import { bookCanonicalPath, seriesCanonicalPath } from "./catalog-routing.ts";
+import { postUrl } from "./posts-shared.ts";
 
 type SitemapSeries = { slug: string; name?: string; series_heading?: string; $updatedAt?: string };
 type SitemapBook = { slug: string; title: string; status: string; $updatedAt?: string };
@@ -29,4 +30,23 @@ export function catalogSitemapEntries(
   );
 
   return [...seriesPages, ...bookPages];
+}
+
+type SitemapPost = { slug: string; published_at: string; updated_at?: string };
+
+/**
+ * The news archive and one entry per published post. The archive is left out
+ * while there are no posts, so an empty page is never offered for indexing.
+ */
+export function newsSitemapEntries(siteUrl: string, posts: SitemapPost[]): SitemapEntry[] {
+  if (posts.length === 0) return [];
+
+  const latest = posts[0];
+  return [
+    { url: `${siteUrl}/news`, lastModified: latest.updated_at || latest.published_at },
+    ...posts.map((post) => ({
+      url: `${siteUrl}${postUrl(post.slug)}`,
+      lastModified: post.updated_at || post.published_at,
+    })),
+  ];
 }

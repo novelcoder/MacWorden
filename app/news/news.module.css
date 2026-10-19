@@ -1,0 +1,83 @@
+.page {
+  min-height: 100vh;
+  padding: 9rem 3rem 6rem;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 20%, rgba(217, 165, 95, 0.05) 0%, transparent 70%),
+    linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%);
+}
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.eyebrow {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.eyebrow::before {
+  content: '';
+  width: 2.5rem;
+  height: 1px;
+  background: var(--gold);
+}
+.title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--paper);
+  letter-spacing: -0.01em;
+  margin-bottom: 1rem;
+}
+.subhead {
+  max-width: 40rem;
+  color: var(--paper-dim);
+  margin-bottom: 3.5rem;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+}
+.empty {
+  color: var(--paper-dim);
+  font-style: italic;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 3.5rem;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--paper-dim);
+}
+.pagination a {
+  color: var(--gold);
+  text-decoration: none;
+}
+.pagination a:hover {
+  color: var(--paper);
+}
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .page {
+    padding: 7rem 1.5rem 4rem;
+  }
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

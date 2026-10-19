@@ -32,6 +32,9 @@ function SiteFooterView({ sourceKey }: { sourceKey: string | null }) {
             <Link href={attributedPath("/series")}>Series</Link>
           </li>
           <li>
+            <Link href={attributedPath("/news")}>News</Link>
+          </li>
+          <li>
             <Link href={attributedPath("/#about")}>About</Link>
           </li>
           <li>

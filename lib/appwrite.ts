@@ -86,8 +86,12 @@ export function getCmsDatabaseId(): string {
   return requiredEnv("CMS_DATABASE_ID");
 }
 
-function siteId(): string {
+export function getCmsSiteId(): string {
   return requiredEnv("CMS_SITE_ID");
+}
+
+function siteId(): string {
+  return getCmsSiteId();
 }
 
 export async function getSiteSetting(key: string): Promise<string> {
