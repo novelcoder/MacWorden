@@ -22,6 +22,7 @@ function SiteNavView({ sourceKey }: { sourceKey: string | null }) {
   const onHome = pathname === "/";
   const onSeries = pathname.startsWith("/series");
   const onBooks = pathname.startsWith("/books");
+  const onNews = pathname.startsWith("/news");
 
   return (
     <nav id="main-nav" className={scrolled ? "scrolled" : undefined}>
@@ -42,6 +43,11 @@ function SiteNavView({ sourceKey }: { sourceKey: string | null }) {
         <li>
           <Link href={attributedPath("/books")} className={onBooks ? "active" : undefined}>
             The Books
+          </Link>
+        </li>
+        <li>
+          <Link href={attributedPath("/news")} className={onNews ? "active" : undefined}>
+            News
           </Link>
         </li>
         <li>
