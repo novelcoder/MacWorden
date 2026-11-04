@@ -1,17 +1,17 @@
 import "server-only";
-import { Client, Databases, Query, TablesDB, type Models } from "node-appwrite";
+import { Client, Query, TablesDB, type Models } from "node-appwrite";
 import { VISIBLE_BOOK_STATUSES, type BookStatus } from "@/lib/book-status";
 
-const SERIES_COLLECTION = "series";
-const BOOKS_COLLECTION = "books";
-const SETTINGS_COLLECTION = "site_settings";
+const SERIES_TABLE = "series";
+const BOOKS_TABLE = "books";
+const SETTINGS_TABLE = "site_settings";
 
 const HERO_BOOK_KEY = "hero_book_id";
 const NEWSLETTER_INCENTIVE_KEY = "newsletter_incentive";
 const BOOKS_PAGE_SIZE = 100;
 const MAX_BOOK_PAGES = 20;
 
-export interface SeriesDoc extends Models.Document {
+export interface SeriesDoc extends Models.Row {
   slug: string;
   name?: string;
   series_heading?: string;
@@ -23,7 +23,7 @@ export interface SeriesDoc extends Models.Document {
   description?: string;
 }
 
-export interface BookDoc extends Models.Document {
+export interface BookDoc extends Models.Row {
   series_id: string;
   title: string;
   slug: string;
@@ -55,7 +55,6 @@ function requiredEnv(name: string): string {
 }
 
 let client: Client | null = null;
-let databases: Databases | null = null;
 let tablesDatabase: TablesDB | null = null;
 
 function getClient(): Client {
@@ -66,13 +65,6 @@ function getClient(): Client {
       .setKey(requiredEnv("CMS_API_KEY"));
   }
   return client;
-}
-
-function getDatabases(): Databases {
-  if (!databases) {
-    databases = new Databases(getClient());
-  }
-  return databases;
 }
 
 export function getTablesDatabase(): TablesDB {
@@ -95,13 +87,13 @@ function siteId(): string {
 }
 
 export async function getSiteSetting(key: string): Promise<string> {
-  const settings = await getDatabases().listDocuments(getCmsDatabaseId(), SETTINGS_COLLECTION, [
-    Query.equal("sites", siteId()),
-    Query.equal("key", key),
-    Query.limit(1),
-  ]);
+  const settings = await getTablesDatabase().listRows({
+    databaseId: getCmsDatabaseId(),
+    tableId: SETTINGS_TABLE,
+    queries: [Query.equal("sites", siteId()), Query.equal("key", key), Query.limit(1)],
+  });
 
-  const value = (settings.documents[0]?.value as string | undefined)?.trim();
+  const value = (settings.rows[0]?.value as string | undefined)?.trim();
   if (!value) {
     throw new Error(`No ${key} setting exists for this site`);
   }
@@ -117,11 +109,11 @@ export async function getHeroBook(): Promise<{
   storeUrl?: string;
 }> {
   const heroBookId = await getSiteSetting(HERO_BOOK_KEY);
-  const book = await getDatabases().getDocument<BookDoc>(
-    getCmsDatabaseId(),
-    BOOKS_COLLECTION,
-    heroBookId
-  );
+  const book = await getTablesDatabase().getRow<BookDoc>({
+    databaseId: getCmsDatabaseId(),
+    tableId: BOOKS_TABLE,
+    rowId: heroBookId,
+  });
 
   if (!book.cover_url) {
     throw new Error(`Book ${heroBookId} does not have a cover_url`);
@@ -141,21 +133,21 @@ export async function getNewsletterIncentive(): Promise<string> {
 }
 
 export async function getSeriesList(): Promise<SeriesDoc[]> {
-  const res = await getDatabases().listDocuments<SeriesDoc>(getCmsDatabaseId(), SERIES_COLLECTION, [
-    Query.equal("sites", siteId()),
-    Query.orderAsc("display_order"),
-    Query.limit(25),
-  ]);
-  return res.documents;
+  const res = await getTablesDatabase().listRows<SeriesDoc>({
+    databaseId: getCmsDatabaseId(),
+    tableId: SERIES_TABLE,
+    queries: [Query.equal("sites", siteId()), Query.orderAsc("display_order"), Query.limit(25)],
+  });
+  return res.rows;
 }
 
 export async function getSeriesBySlug(slug: string): Promise<SeriesDoc | null> {
-  const res = await getDatabases().listDocuments<SeriesDoc>(getCmsDatabaseId(), SERIES_COLLECTION, [
-    Query.equal("slug", slug),
-    Query.equal("sites", siteId()),
-    Query.limit(1),
-  ]);
-  return res.documents[0] ?? null;
+  const res = await getTablesDatabase().listRows<SeriesDoc>({
+    databaseId: getCmsDatabaseId(),
+    tableId: SERIES_TABLE,
+    queries: [Query.equal("slug", slug), Query.equal("sites", siteId()), Query.limit(1)],
+  });
+  return res.rows[0] ?? null;
 }
 
 /**
@@ -167,17 +159,21 @@ async function listVisibleBooks(queries: string[] = []): Promise<BookDoc[]> {
   let cursor: string | undefined;
 
   for (let page = 0; page < MAX_BOOK_PAGES; page++) {
-    const res = await getDatabases().listDocuments<BookDoc>(getCmsDatabaseId(), BOOKS_COLLECTION, [
-      ...queries,
-      Query.equal("status", [...VISIBLE_BOOK_STATUSES]),
-      Query.orderAsc("$id"),
-      Query.limit(BOOKS_PAGE_SIZE),
-      ...(cursor ? [Query.cursorAfter(cursor)] : []),
-    ]);
+    const res = await getTablesDatabase().listRows<BookDoc>({
+      databaseId: getCmsDatabaseId(),
+      tableId: BOOKS_TABLE,
+      queries: [
+        ...queries,
+        Query.equal("status", [...VISIBLE_BOOK_STATUSES]),
+        Query.orderAsc("$id"),
+        Query.limit(BOOKS_PAGE_SIZE),
+        ...(cursor ? [Query.cursorAfter(cursor)] : []),
+      ],
+    });
 
-    books.push(...res.documents);
-    if (res.documents.length < BOOKS_PAGE_SIZE) return books;
-    cursor = res.documents[res.documents.length - 1].$id;
+    books.push(...res.rows);
+    if (res.rows.length < BOOKS_PAGE_SIZE) return books;
+    cursor = res.rows[res.rows.length - 1].$id;
   }
 
   throw new Error(
@@ -222,11 +218,11 @@ export async function getSeriesCatalog(): Promise<SeriesCatalogEntry[]> {
 
 export async function getSeriesById(seriesId: string): Promise<SeriesDoc | null> {
   try {
-    return await getDatabases().getDocument<SeriesDoc>(
-      getCmsDatabaseId(),
-      SERIES_COLLECTION,
-      seriesId
-    );
+    return await getTablesDatabase().getRow<SeriesDoc>({
+      databaseId: getCmsDatabaseId(),
+      tableId: SERIES_TABLE,
+      rowId: seriesId,
+    });
   } catch {
     return null;
   }
