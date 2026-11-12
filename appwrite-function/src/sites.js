@@ -25,6 +25,16 @@ export const SITES = {
     rejectedSegments: ['mw'],
     origins: ['https://jamiemcfarlane.com', 'https://www.jamiemcfarlane.com'],
   },
+  // No Bellingwood website yet, so calls are server-side only. Add its domain to `origins`
+  // when a signup form exists.
+  bellingwood: {
+    siteKey: 'bellingwood',
+    groupIdEnv: 'MAILERLITE_GROUP_ID_BELLINGWOOD',
+    apiKeyEnv: 'MAILERLITE_API_KEY_BELLINGWOOD',
+    requiredSegment: null,
+    rejectedSegments: ['mw'],
+    origins: [],
+  },
 };
 
 export const ALLOWED_ORIGINS = new Set(Object.values(SITES).flatMap((site) => site.origins));

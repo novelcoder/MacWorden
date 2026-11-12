@@ -10,7 +10,7 @@ distinguish new, existing or resubscribed readers, and it adds nothing to Mailer
 The function serves both author sites. The form posts
 `{ site, email, source_key?, signup_path, website, elapsed_ms }`:
 
-- `site` is `macworden` or `jamiemcfarlane`; it picks the MailerLite group and the row's
+- `site` is `macworden`, `jamiemcfarlane` or `bellingwood`; it picks the MailerLite group and the row's
   `site_key` server-side. A missing `site` means `macworden` (the original request shape).
   Unknown sites are rejected, and a group ID in the request is never used.
 - `website` is a hidden honeypot. When filled, the function returns success without calling
@@ -27,7 +27,7 @@ human-readable text and `code` is stable:
 | status | code                       | when                                                   |
 | ------ | -------------------------- | ------------------------------------------------------ |
 | 400    | `invalid_request`          | the body is not a JSON object                          |
-| 400    | `unknown_site`             | `site` is not `macworden` or `jamiemcfarlane`          |
+| 400    | `unknown_site`             | `site` is not `macworden`, `jamiemcfarlane` or `bellingwood` |
 | 400    | `invalid_email`            | the address is malformed, or MailerLite rejected it    |
 | 400    | `try_again`                | `elapsed_ms` is under one second                       |
 | 405    | `method_not_allowed`       | not `POST` or `OPTIONS`                                |

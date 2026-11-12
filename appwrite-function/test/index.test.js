@@ -18,6 +18,7 @@ const env = {
   MAILERLITE_API_KEY: 'test-api-key',
   MAILERLITE_GROUP_ID: '12345',
   MAILERLITE_GROUP_ID_JAMIEMCFARLANE: '67890',
+  MAILERLITE_GROUP_ID_BELLINGWOOD: '24680',
   APPWRITE_FUNCTION_API_ENDPOINT: 'https://appwrite.test/v1',
   APPWRITE_FUNCTION_PROJECT_ID: 'project-id',
 };
@@ -264,6 +265,29 @@ test('site selects the MailerLite group and labels the event', async () => {
   assert.equal(events[0].site_key, 'jamie_mcfarlane');
 });
 
+test('site bellingwood posts to the Bellingwood group and labels the event', async () => {
+  const { result, mailerLiteCalls, events } = await run({
+    site: 'bellingwood',
+    email: 'reader@example.com',
+    signup_path: '/',
+  });
+  assert.equal(result.status, 200);
+  assert.match(mailerLiteCalls[0].url, /\/groups\/24680\/subscribers$/);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].site_key, 'bellingwood');
+});
+
+test('bellingwood without a configured group fails without calling MailerLite', async () => {
+  const { result, mailerLiteCalls, events } = await run(
+    { site: 'bellingwood', email: 'reader@example.com' },
+    { removeEnv: ['MAILERLITE_GROUP_ID_BELLINGWOOD'] }
+  );
+  assert.equal(result.status, 503);
+  assert.equal(result.body.code, 'subscription_unavailable');
+  assert.equal(mailerLiteCalls.length, 0);
+  assert.equal(events.length, 0);
+});
+
 test('a group ID in the request is ignored and unknown sites are rejected', async () => {
   const { mailerLiteCalls } = await run({
     site: 'macworden',
@@ -383,6 +407,13 @@ test('CORS reflects only the sites that use this function', async () => {
 
   const jamie = await run({ email: 'reader@example.com' }, { headers: { origin: 'https://jamiemcfarlane.com' } });
   assert.equal(jamie.result.headers['Access-Control-Allow-Origin'], 'https://jamiemcfarlane.com');
+
+  // Bellingwood has no website, so it adds no allowed origin.
+  const bellingwood = await run(
+    { site: 'bellingwood', email: 'reader@example.com' },
+    { headers: { origin: 'https://bellingwood.example' } }
+  );
+  assert.equal('Access-Control-Allow-Origin' in bellingwood.result.headers, false);
 
   for (const origin of ['https://evil.example', 'http://macworden.com', 'null', undefined]) {
     const { result } = await run({ email: 'reader@example.com' }, { headers: { origin } });
